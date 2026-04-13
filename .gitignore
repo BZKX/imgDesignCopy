@@ -1,0 +1,12 @@
+node_modules
+dist
+.omc/state
+.omc/sessions
+.claude/scheduled_tasks.lock
+*.log
+.env
+.env.local
+.DS_Store
+playwright-report
+test-results
+coverage
