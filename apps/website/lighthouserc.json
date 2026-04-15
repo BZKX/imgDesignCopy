@@ -1,0 +1,29 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "settings": {
+        "formFactor": "mobile",
+        "throttling": {
+          "cpuSlowdownMultiplier": 4,
+          "throughputKbps": 1638.4,
+          "rttMs": 150
+        },
+        "screenEmulation": {
+          "width": 360,
+          "height": 640,
+          "deviceScaleFactor": 2,
+          "mobile": true
+        }
+      }
+    },
+    "assert": {
+      "assertions": {
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
+        "total-blocking-time": ["error", { "maxNumericValue": 200 }],
+        "categories:performance": ["error", { "minScore": 0.9 }]
+      }
+    }
+  }
+}

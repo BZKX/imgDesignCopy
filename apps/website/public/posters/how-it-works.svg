@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07070a"/>
+      <stop offset="100%" stop-color="#0d0d12"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c5cff"/>
+      <stop offset="100%" stop-color="#00e1ff"/>
+    </linearGradient>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#15151c"/>
+      <stop offset="100%" stop-color="#0d0d12"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="rgba(124,92,255,0.06)" stroke-width="1">
+    <line x1="96" y1="0" x2="96" y2="500"/>
+    <line x1="192" y1="0" x2="192" y2="500"/>
+    <line x1="288" y1="0" x2="288" y2="500"/>
+    <line x1="384" y1="0" x2="384" y2="500"/>
+    <line x1="480" y1="0" x2="480" y2="500"/>
+    <line x1="576" y1="0" x2="576" y2="500"/>
+    <line x1="672" y1="0" x2="672" y2="500"/>
+    <line x1="0" y1="96" x2="800" y2="96"/>
+    <line x1="0" y1="192" x2="800" y2="192"/>
+    <line x1="0" y1="288" x2="800" y2="288"/>
+    <line x1="0" y1="384" x2="800" y2="384"/>
+  </g>
+
+  <!-- Step 01: Capture (left card) -->
+  <rect x="40" y="100" width="210" height="300" rx="12" fill="url(#cardBg)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="56" y="142" font-family="monospace" font-size="11" fill="#7c5cff" font-weight="600">01</text>
+  <text x="56" y="168" font-family="system-ui,sans-serif" font-size="18" fill="#f5f5f7" font-weight="600">Capture</text>
+  <text x="56" y="192" font-family="system-ui,sans-serif" font-size="13" fill="#a1a1a8">Drag to select any</text>
+  <text x="56" y="210" font-family="system-ui,sans-serif" font-size="13" fill="#a1a1a8">region on screen.</text>
+  <!-- Screenshot mockup -->
+  <rect x="56" y="236" width="178" height="120" rx="6" fill="#15151c" stroke="rgba(124,92,255,0.2)" stroke-width="1" stroke-dasharray="4 3"/>
+  <rect x="72" y="252" width="80" height="52" rx="4" fill="rgba(124,92,255,0.15)" stroke="rgba(124,92,255,0.4)" stroke-width="1"/>
+  <text x="112" y="282" font-family="system-ui,sans-serif" font-size="10" fill="#7c5cff" text-anchor="middle">⊕ capture</text>
+
+  <!-- Arrow 01→02 -->
+  <line x1="258" y1="250" x2="300" y2="250" stroke="url(#accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="300,245 310,250 300,255" fill="#4d8eff"/>
+
+  <!-- Step 02: Extract (center card) -->
+  <rect x="295" y="100" width="210" height="300" rx="12" fill="url(#cardBg)" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+  <text x="311" y="142" font-family="monospace" font-size="11" fill="#7c5cff" font-weight="600">02</text>
+  <text x="311" y="168" font-family="system-ui,sans-serif" font-size="18" fill="#f5f5f7" font-weight="600">Extract</text>
+  <text x="311" y="192" font-family="system-ui,sans-serif" font-size="13" fill="#a1a1a8">Vision model reads</text>
+  <text x="311" y="210" font-family="system-ui,sans-serif" font-size="13" fill="#a1a1a8">color, style, mood.</text>
+  <!-- Vision analysis bars -->
+  <rect x="311" y="236" width="178" height="120" rx="6" fill="#15151c"/>
+  <text x="320" y="258" font-family="monospace" font-size="10" fill="#6b6b73">composition</text>
+  <rect x="320" y="262" width="130" height="4" rx="2" fill="rgba(124,92,255,0.15)"/>
+  <rect x="320" y="262" width="98" height="4" rx="2" fill="#7c5cff"/>
+  <text x="320" y="284" font-family="monospace" font-size="10" fill="#6b6b73">palette</text>
+  <rect x="320" y="288" width="130" height="4" rx="2" fill="rgba(124,92,255,0.15)"/>
+  <rect x="320" y="288" width="115" height="4" rx="2" fill="#4d8eff"/>
+  <text x="320" y="310" font-family="monospace" font-size="10" fill="#6b6b73">typography</text>
+  <rect x="320" y="314" width="130" height="4" rx="2" fill="rgba(124,92,255,0.15)"/>
+  <rect x="320" y="314" width="75" height="4" rx="2" fill="#00e1ff"/>
+  <text x="320" y="336" font-family="monospace" font-size="10" fill="#6b6b73">mood</text>
+  <rect x="320" y="340" width="130" height="4" rx="2" fill="rgba(124,92,255,0.15)"/>
+  <rect x="320" y="340" width="108" height="4" rx="2" fill="url(#accent)"/>
+
+  <!-- Arrow 02→03 -->
+  <line x1="513" y1="250" x2="555" y2="250" stroke="url(#accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="555,245 565,250 555,255" fill="#4d8eff"/>
+
+  <!-- Step 03: Prompt (right card) -->
+  <rect x="550" y="100" width="210" height="300" rx="12" fill="url(#cardBg)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="566" y="142" font-family="monospace" font-size="11" fill="#7c5cff" font-weight="600">03</text>
+  <text x="566" y="168" font-family="system-ui,sans-serif" font-size="18" fill="#f5f5f7" font-weight="600">Prompt</text>
+  <text x="566" y="192" font-family="system-ui,sans-serif" font-size="13" fill="#a1a1a8">Structured prompt</text>
+  <text x="566" y="210" font-family="system-ui,sans-serif" font-size="13" fill="#a1a1a8">ready for your model.</text>
+  <!-- Token pills -->
+  <rect x="566" y="232" width="76" height="22" rx="4" fill="rgba(124,92,255,0.15)" stroke="rgba(124,92,255,0.35)" stroke-width="1"/>
+  <text x="604" y="247" font-family="monospace" font-size="10" fill="#7c5cff" text-anchor="middle">isometric</text>
+  <rect x="652" y="232" width="70" height="22" rx="4" fill="rgba(124,92,255,0.15)" stroke="rgba(124,92,255,0.35)" stroke-width="1"/>
+  <text x="687" y="247" font-family="monospace" font-size="10" fill="#7c5cff" text-anchor="middle">#7C5CFF</text>
+  <rect x="566" y="264" width="90" height="22" rx="4" fill="rgba(0,225,255,0.1)" stroke="rgba(0,225,255,0.3)" stroke-width="1"/>
+  <text x="611" y="279" font-family="monospace" font-size="10" fill="#00e1ff" text-anchor="middle">soft shadow</text>
+  <rect x="666" y="264" width="76" height="22" rx="4" fill="rgba(0,225,255,0.1)" stroke="rgba(0,225,255,0.3)" stroke-width="1"/>
+  <text x="704" y="279" font-family="monospace" font-size="10" fill="#00e1ff" text-anchor="middle">32mm lens</text>
+  <!-- Prompt text preview -->
+  <rect x="566" y="298" width="178" height="70" rx="4" fill="#07070a" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="576" y="316" font-family="monospace" font-size="9" fill="#6b6b73">A photographic close-up...</text>
+  <text x="576" y="330" font-family="monospace" font-size="9" fill="#6b6b73">Style: isometric, soft</text>
+  <text x="576" y="344" font-family="monospace" font-size="9" fill="#6b6b73">Camera: 32mm f/1.4</text>
+  <text x="576" y="358" font-family="monospace" font-size="9" fill="#7c5cff">▌</text>
+
+  <!-- Bottom label -->
+  <text x="400" y="462" font-family="system-ui,sans-serif" font-size="13" fill="#3d3d44" text-anchor="middle">Loading interactive scene...</text>
+</svg>

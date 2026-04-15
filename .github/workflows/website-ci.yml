@@ -1,0 +1,172 @@
+name: Website CI
+
+on:
+  pull_request:
+    paths:
+      - 'apps/website/**'
+      - 'packages/core/**'
+      - 'pnpm-lock.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/website/**'
+      - 'packages/core/**'
+
+concurrency:
+  group: website-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: '9'
+  NODE_VERSION: '20'
+
+jobs:
+  # ── 1. Typecheck + unit tests ─────────────────────────────────────────────
+  typecheck-test:
+    name: Typecheck & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @promptlens/website typecheck
+
+      - name: Unit tests
+        run: pnpm --filter @promptlens/website test
+
+  # ── 2. Build + bundle gate ────────────────────────────────────────────────
+  build-bundle-gate:
+    name: Build & Bundle Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build website
+        run: pnpm --filter @promptlens/website build
+        env:
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://promptlens.app' }}
+
+      - name: Bundle size gate
+        run: node apps/website/scripts/check-bundle.mjs
+
+  # ── 3. Playwright smoke (mock demo — no secrets needed, runs on forks) ────
+  playwright-smoke:
+    name: Playwright Smoke (mock)
+    runs-on: ubuntu-latest
+    needs: build-bundle-gate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium webkit
+
+      - name: Build website (mock demo)
+        run: pnpm --filter @promptlens/website build
+        env:
+          NEXT_PUBLIC_DEMO_MOCK: '1'
+          NEXT_PUBLIC_SITE_URL: 'http://localhost:3000'
+
+      - name: Start website
+        run: pnpm --filter @promptlens/website start &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      - name: Run Playwright smoke tests
+        run: pnpm exec playwright test --config apps/website/playwright.config.ts
+        env:
+          PLAYWRIGHT_BASE_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_DEMO_MOCK: '1'
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  # ── 4. Lighthouse CI (runs against Vercel preview — skipped on fork PRs) ──
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: build-bundle-gate
+    # Skip on fork PRs (no Vercel token available)
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install lighthouse-ci
+        run: npm install -g @lhci/cli
+
+      - name: Build website
+        run: pnpm --filter @promptlens/website build
+        env:
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://promptlens.app' }}
+
+      - name: Start website for Lighthouse
+        run: pnpm --filter @promptlens/website start &
+        env:
+          PORT: 3001
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3001 --timeout 30000
+
+      - name: Run Lighthouse CI
+        run: lhci autorun --config=apps/website/lighthouserc.json
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          # Override to warn (not error) when LIGHTHOUSE_ASSERT_MODE=warn is set (R10 rollback switch)
+          LHCI_ASSERT_MODE: ${{ vars.LIGHTHOUSE_ASSERT_MODE || 'error' }}

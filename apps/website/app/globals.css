@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  /* background layers */
+  --color-pl-bg-base: #07070a;
+  --color-pl-bg-elev-1: #0d0d12;
+  --color-pl-bg-elev-2: #15151c;
+
+  /* foreground */
+  --color-pl-fg-primary: #f5f5f7;
+  --color-pl-fg-secondary: #a1a1a8;
+  --color-pl-fg-tertiary: #6b6b73;
+  --color-pl-fg-disabled: #3d3d44;
+
+  /* brand */
+  --color-pl-accent-from: #7c5cff;
+  --color-pl-accent-to: #00e1ff;
+  --color-pl-accent-mid: #4d8eff;
+
+  /* state */
+  --color-pl-success: #2ee59d;
+  --color-pl-warning: #ffb454;
+  --color-pl-danger: #ff5c7c;
+
+  /* radii */
+  --radius-pl-sm: 4px;
+  --radius-pl-md: 8px;
+  --radius-pl-lg: 12px;
+  --radius-pl-xl: 20px;
+
+  /* fonts */
+  --font-pl-sans: "Inter", "MiSans VF", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-pl-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  /* type scale (desktop) */
+  --text-pl-display: 5.5rem;
+  --text-pl-h1: 3.5rem;
+  --text-pl-h2: 2.25rem;
+  --text-pl-h3: 1.5rem;
+  --text-pl-body-lg: 1.125rem;
+  --text-pl-body: 1rem;
+  --text-pl-caption: 0.875rem;
+}
+
+:root {
+  --pl-bg-overlay: rgba(7,7,10,0.72);
+  --pl-border-subtle: rgba(255,255,255,0.06);
+  --pl-border-default: rgba(255,255,255,0.10);
+  --pl-border-strong: rgba(255,255,255,0.18);
+  --pl-grid-line: rgba(124,92,255,0.08);
+
+  --pl-grad-brand: linear-gradient(135deg, #7c5cff 0%, #00e1ff 100%);
+  --pl-grad-brand-soft: linear-gradient(135deg, rgba(124,92,255,0.18), rgba(0,225,255,0.18));
+  --pl-grad-radial-spot: radial-gradient(60% 80% at 50% 30%, rgba(124,92,255,0.35) 0%, rgba(0,225,255,0.10) 45%, transparent 75%);
+  --pl-grad-text-shimmer: linear-gradient(110deg, #f5f5f7 0%, #c9b8ff 30%, #7ce0ff 55%, #f5f5f7 80%);
+
+  --pl-shadow-glow: 0 0 0 1px rgba(124,92,255,0.25), 0 8px 32px -8px rgba(124,92,255,0.45);
+  --pl-shadow-card: 0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 48px -16px rgba(0,0,0,0.6);
+
+  --pl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --pl-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --pl-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --pl-dur-quick: 120ms;
+  --pl-dur-base: 240ms;
+  --pl-dur-mid: 480ms;
+  --pl-dur-slow: 1200ms;
+
+  color-scheme: dark;
+}
+
+html, body {
+  background: var(--color-pl-bg-base);
+  color: var(--color-pl-fg-primary);
+  font-family: var(--font-pl-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

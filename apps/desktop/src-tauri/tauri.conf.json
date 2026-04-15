@@ -1,0 +1,65 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PromptLens",
+  "version": "0.1.0",
+  "identifier": "com.promptlens.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm dev:web",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build:web",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "drawer",
+        "title": "PromptLens",
+        "width": 440,
+        "height": 900,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "shadow": false,
+        "focus": false,
+        "acceptFirstMouse": true
+      },
+      {
+        "label": "overlay",
+        "url": "index.html?overlay=1",
+        "title": "PromptLens Overlay",
+        "fullscreen": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "decorations": false,
+        "skipTaskbar": true,
+        "resizable": false,
+        "focus": true,
+        "visible": false,
+        "shadow": false
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png"
+    ],
+    "category": "Productivity",
+    "shortDescription": "Screen-to-prompt vision insight",
+    "longDescription": "PromptLens lives in the menu bar. Summon with a global shortcut or tray click, capture any region on screen, get structured AI prompts and design insights.",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
+  }
+}

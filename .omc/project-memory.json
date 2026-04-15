@@ -1,16 +1,118 @@
 {
-  "project": "img2prompt",
-  "description": "Chrome 扩展 MVP：截图/选元素 → 调用用户自配的 OpenAI-compatible Vision API → 同时生成 Midjourney / Stable Diffusion / DALL·E 三种格式的反向 prompt。结果以右侧抽屉（毛玻璃 Apple 风）呈现，内置历史 + 设置。",
-  "status": "MVP 可用，已在本机验证端到端流程跑通（用户第三方 API baseURL=https://api.aistarlit.com/v1, model=gpt-5.4）。未上架 Chrome Web Store。",
-  "targetUser": "灵感收集者（浏览 Pinterest / 小红书 / X 看到好图想复现风格）",
-  "plan": ".omc/plans/2026-04-13-img2prompt-chrome-mvp.md（原始 MVP 计划，部分已演进）",
-  "techStack": "Vite 5 + React 18 + TypeScript 5.6 + Tailwind 3 + @crxjs/vite-plugin 2.4 (MV3) + zod (schema 校验) + idb (IndexedDB 历史) + Zustand (popup 状态) + Vitest + Playwright。pnpm，Node 20。",
-  "build": "pnpm install; pnpm dev (HMR 开发，写到 dist/，加载 dist/ 到 chrome://extensions)；pnpm build 生产打包；pnpm test 单测（40 个）；pnpm typecheck；./scripts/pack.sh 一键打 zip 到 store-assets/。",
-  "conventions": "- 模块消息协议集中在 src/lib/messages.ts 的 MSG 常量 + *Msg 类型\n- 所有图片跨上下文传输用 base64 字符串（不是 Blob，chrome.runtime.sendMessage JSON 序列化丢 Blob）\n- 历史缩略图走 RPC 懒加载：RPC_HISTORY_LIST 只返元数据，RPC_HISTORY_THUMB(id) 单独取缩略图\n- Side Panel / Overlay 都挂在 Shadow DOM 下，样式用字符串注入（SIDE_PANEL_STYLES / OVERLAY_STYLES）避免被宿主页面 CSS 污染\n- 结果页面是 content script 注入的右侧抽屉，不是 chrome.action popup（popup 已移除，点击图标触发 action.onClicked → PANEL_OPEN）\n- 视觉模型请求格式：OpenAI Chat Completions + response_format=json_object + temperature 0.4 + max_tokens 800，带一次 schema 重试\n- 图片始终用 JPEG（Q=0.88 捕获 + Q=0.85 裁剪），长边 > 1280px 时下采样到 1280",
-  "structure": "src/\n  background/          # MV3 service worker: 快捷键 + 截图 + 裁剪管道 + RPC 路由\n    index.ts           # 主入口：action.onClicked、commands.onCommand、onMessage(RPC)\n    capture.ts         # cropToBase64: OffscreenCanvas + JPEG + 长边缩放\n  content/             # 注入到每个 http/https/file 页面\n    index.ts           # 消息路由 + overlay/side panel 挂载生命周期\n    overlay.tsx        # 截图选区（框选 / 元素模式 双切换，默认元素）\n    side-panel.tsx     # 右侧抽屉：launcher/loading/result/error/history/settings 同一抽屉内切换\n    side-panel-styles.ts, overlay.tsx 内嵌 style 字符串（Apple 风 token）\n    selection.ts       # 矩形坐标归一化 + clamp + 最小尺寸检测\n  lib/\n    messages.ts        # MSG 常量 + Img2PromptMessage 联合类型 + HistoryEntryDto\n    config.ts          # chrome.storage.sync 封装\n    config-schema.ts   # zod Config schema（baseURL/apiKey/model/maxHistory/language）\n    vision-client.ts   # generatePrompts() + 4 种 typed error（Auth/RateLimit/Network/Schema）\n    prompt-schema.ts   # zod PromptResult (mj/sd/dalle)\n    storage.ts         # idb 封装：add/list/getOne/remove/clear/prune/addAndPrune\n    system-prompts/    # buildSystemPrompt(lang='zh'|'en')\n  options/             # 独立设置页（仍保留为 options_page，侧抽屉也有同一份设置 UI）\n  popup/               # 已从 manifest action 移除，文件保留但不参与打包\nmanifest.config.ts     # @crxjs defineManifest，permissions=[activeTab, storage, scripting]，命令 Ctrl/Cmd+Shift+Y",
-  "notes": "## 关键架构决策与权衡\n- **抽屉代替 popup**：chrome.action popup 点击外部会被关闭，截图时体验差 → 改为点击图标发 PANEL_OPEN 给 content script，content 挂载右侧毛玻璃抽屉。Esc 取消选区会动画打开回 launcher；开始截图时抽屉先滑出再开始选区。\n- **元素选择模式默认**：通过 document.elementsFromPoint 过滤掉扩展自身 host DOM 拿到真实目标元素，鼠标悬停即高亮 bounding rect。按 E 键或工具条切换框选 / 元素。\n- **工具条事件冒泡 bug**：overlay 工具条必须全部 stopPropagation(onMouseDown/Up/Move/Click)，否则点击切换模式会被 overlay-root 误判为开始/结束选区。\n- **MV3 service worker 30s 超时**：图片大时 fetch 可能超时；现用 JPEG+降采样控制载荷大小。\n- **content_scripts 静态注册而非动态 injectScript**：源码 TS 路径传给 executeScript 不工作（需 built .js），改为 manifest 静态注册。fallback 错误提示：刷新 tab 让 content 注入。\n- **chrome.tabs.captureVisibleTab vs PNG**：PNG 编码整屏 ~500ms、裁剪后再编一次 ~200ms，全改 JPEG 大约快 3–5 倍。\n- **手工 btoa 很慢**：大 blob 用 FileReader.readAsDataURL 原生 base64 快 2–4 倍。\n- **并行化**：captureVisibleTab 和 loadConfig 并行执行，省 10–30ms。\n\n## 已知限制\n- 受限页无法用：chrome://、chrome-extension://、Chrome Web Store、view-source:、about:、edge://、PDF 内嵌。会显示 RESTRICTED_PAGE 错误。\n- 截图失败后不会自动重试，需要手动再截。\n- E2E 测试（Playwright）在 CI 不跑（需要 headful Chromium）；结构已写好，开发机可跑 `pnpm test:e2e`。\n- 历史记录只本地存（IndexedDB），没有跨设备同步。\n- 无 BYOK 之外的模型选项：必须是 OpenAI Chat Completions 兼容 API，且 model 真的支持 image_url 内容类型。gpt-5.4 等奇怪模型需中转站支持。\n\n## 用户当前使用的 API 配置（本机）\nbaseURL=https://api.aistarlit.com/v1, model=gpt-5.4（第三方中转，OpenAI 协议）\n\n## 调试入口\n- 后台：chrome://extensions → img2prompt → 点 Service Worker（打开 DevTools，Console 显示 [img2prompt] 日志、Network 看 /chat/completions 请求）\n- 页面：目标网页 F12 → Console 筛选 img2prompt，能看到 [img2prompt][content] 日志\n- 选项：右键插件图标 → 选项（或抽屉里点齿轮）\n\n## 待办（v1.x / v2）\n- v1.1：一键投喂 MJ/SD/ChatGPT 网页\n- v1.2：prompt 编辑器（关键词开关 / 权重滑块 / 风格预设）\n- v2.0：Tauri 桌面端（复用 vision-client + system-prompts）\n- v2.1：云同步（Supabase / CF D1）\n- 图标套件（16/48/128）+ 3 张 1280×800 截图 + 官网 URL 才能上架 Chrome Web Store",
-  "directives": "- 视觉模型调用永远走 background service worker，不从 content script 直接 fetch（CORS + 不暴露 key 到页面脚本）\n- 新增 RPC 类型时必须加到 src/lib/messages.ts 的 MSG 常量 + 联合类型，background onMessage 分支 + sendResponse 配合 return true（异步回复）\n- 修改打图片的代码时，务必保持 JPEG 路径畅通；如要恢复 PNG 必须同步改 vision-client.ts 里的 mime 字段默认值、测试里的 data:image/* 期望字符串、side-panel.tsx 的缩略图 src\n- 改 manifest.config.ts 的 content_scripts / background / permissions 时，要同步检查 store-assets/README.md 的权限说明（上架时会被审核）\n- Shadow DOM 样式更改走 side-panel-styles.ts / overlay.tsx 内的字符串，不要引入 Tailwind 到 content script（样式会与宿主页冲突 + 体积暴涨）\n- 涉及 IndexedDB 结构变化要在 src/lib/storage.ts 增加 version 和 onupgradeneeded 迁移；不要直接改 schema\n- side panel 视图切换通过内部 View 状态机，不要再引入 router；关闭动画 260ms 必须保留",
   "version": "1.0.0",
-  "lastScanned": 1776068017401,
-  "projectRoot": "/Users/zhukexin/Desktop/个人/imgDesignCopy"
+  "lastScanned": 1776258140625,
+  "projectRoot": "/Users/zhukexin/Desktop/个人/imgDesignCopy",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=20",
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pnpm",
+    "runtime": "Node.js 20"
+  },
+  "build": {
+    "buildCommand": "pnpm build",
+    "testCommand": "pnpm test",
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {
+      "build": "pnpm -r build",
+      "test": "pnpm -r test",
+      "typecheck": "pnpm -r typecheck",
+      "dev:chrome": "pnpm --filter @promptlens/chrome dev",
+      "dev:desktop": "pnpm --filter @promptlens/desktop dev",
+      "build:chrome": "bash scripts/pack-chrome.sh",
+      "build:desktop": "bash scripts/pack-desktop.sh",
+      "build:all": "pnpm build:chrome && pnpm build:desktop",
+      "test:chrome": "pnpm --filter @promptlens/chrome test",
+      "test:core": "pnpm --filter @promptlens/core test",
+      "dev:website": "pnpm --filter @promptlens/website dev",
+      "build:website": "pnpm --filter @promptlens/website build"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [],
+    "mainDirectories": [
+      "scripts"
+    ],
+    "gitBranches": null
+  },
+  "directoryMap": {
+    "apps": {
+      "path": "apps",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1776258140598,
+      "keyFiles": []
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1776258140598,
+      "keyFiles": []
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 3,
+      "lastAccessed": 1776258140598,
+      "keyFiles": [
+        "pack-chrome.sh",
+        "pack-desktop.sh",
+        "pack.sh"
+      ]
+    },
+    "store-assets": {
+      "path": "store-assets",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776258140605,
+      "keyFiles": [
+        "README.md",
+        "img2prompt-0.1.0.zip",
+        "promptlens-chrome-0.1.0.zip"
+      ]
+    },
+    "svg": {
+      "path": "svg",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776258140605,
+      "keyFiles": [
+        "drawing.svg",
+        "product.svg",
+        "web.svg"
+      ]
+    },
+    "tests-e2e": {
+      "path": "tests-e2e",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1776258140605,
+      "keyFiles": []
+    }
+  }
 }

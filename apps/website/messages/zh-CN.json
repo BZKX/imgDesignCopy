@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "why": "为什么",
+    "how": "原理",
+    "demo": "试一试",
+    "features": "功能",
+    "platforms": "平台",
+    "install": "安装"
+  },
+  "hero": {
+    "badge": "v1.0 · 浏览器 + 桌面端",
+    "titleLine1": "Turn any",
+    "titleLine2": "screenshot into",
+    "titleLine3": "a perfect prompt.",
+    "subtitle": "截取任意区域，得到可直接送进 MidJourney / SDXL / 你自己模型的 prompt。本地优先，零服务端。",
+    "ctaPrimary": "试用 Demo",
+    "ctaSecondary": "安装到 Chrome"
+  },
+  "sections": {
+    "problem": {
+      "eyebrow": "THE PROBLEM",
+      "title": "描述一张参考图，比设计它还慢。"
+    },
+    "howItWorks": {
+      "eyebrow": "HOW IT WORKS",
+      "title": "三步拿到 prompt。",
+      "step1Title": "Capture",
+      "step2Title": "Extract",
+      "step3Title": "Prompt"
+    },
+    "demo": {
+      "eyebrow": "LIVE DEMO",
+      "title": "不用安装就能试。"
+    },
+    "features": {
+      "eyebrow": "FEATURES",
+      "title": "六个小而美的细节。"
+    },
+    "platforms": {
+      "eyebrow": "BUILT FOR YOUR WORKFLOW",
+      "title": "浏览器、Mac、Windows 都在。"
+    },
+    "pricing": {
+      "title": "永久免费。永远属于你。",
+      "subtitle": "无账号、无默认埋点、无厂商锁定。MIT 开源。"
+    },
+    "cta": {
+      "title": "用 AI 的眼睛重新看你的设计。"
+    }
+  }
+}

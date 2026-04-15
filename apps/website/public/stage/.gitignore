@@ -1,0 +1,3 @@
+# PNG source files — heavy, kept locally only. Deploy uses the .webp siblings.
+_source/
+*.png

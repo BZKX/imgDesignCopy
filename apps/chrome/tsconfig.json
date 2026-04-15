@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["chrome", "node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@promptlens/core": ["../../packages/core/src"],
+      "@promptlens/core/*": ["../../packages/core/src/*"]
+    }
+  },
+  "include": ["src", "manifest.config.ts", "vite.config.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist", "e2e", "tests-e2e"]
+}

@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "why": "Why",
+    "how": "How",
+    "demo": "Demo",
+    "features": "Features",
+    "platforms": "Platforms",
+    "install": "Install"
+  },
+  "hero": {
+    "badge": "v1.0 · Browser + Desktop",
+    "titleLine1": "Turn any",
+    "titleLine2": "screenshot into",
+    "titleLine3": "a perfect prompt.",
+    "subtitle": "Capture any region and get a prompt ready to paste into MidJourney, SDXL, or your own model. Local-first, zero server.",
+    "ctaPrimary": "Try Demo",
+    "ctaSecondary": "Install on Chrome"
+  },
+  "sections": {
+    "problem": {
+      "eyebrow": "THE PROBLEM",
+      "title": "Describing a reference image takes longer than designing it."
+    },
+    "howItWorks": {
+      "eyebrow": "HOW IT WORKS",
+      "title": "Three steps to a prompt.",
+      "step1Title": "Capture",
+      "step2Title": "Extract",
+      "step3Title": "Prompt"
+    },
+    "demo": {
+      "eyebrow": "LIVE DEMO",
+      "title": "Try it without installing."
+    },
+    "features": {
+      "eyebrow": "FEATURES",
+      "title": "Six small, beautiful details."
+    },
+    "platforms": {
+      "eyebrow": "BUILT FOR YOUR WORKFLOW",
+      "title": "Browser, Mac, and Windows — all covered."
+    },
+    "pricing": {
+      "title": "Free forever. Always yours.",
+      "subtitle": "No account, no default telemetry, no vendor lock-in. MIT licensed."
+    },
+    "cta": {
+      "title": "See your design through AI eyes."
+    }
+  }
+}
