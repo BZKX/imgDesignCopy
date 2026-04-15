@@ -56,6 +56,13 @@ input, select, button, textarea { font-family: inherit; font-size: inherit; colo
   background: linear-gradient(135deg, #0071e3, #5e5ce6);
   flex-shrink: 0;
 }
+.brand-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
 .header-actions { display: flex; gap: 2px; }
 .icon-btn {
   width: 30px; height: 30px;

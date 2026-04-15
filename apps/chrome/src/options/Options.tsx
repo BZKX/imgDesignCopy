@@ -123,18 +123,16 @@ export function Options() {
     <main className="min-h-screen bg-[#fbfbfd] text-[#1d1d1f]">
       <div className="mx-auto max-w-[640px] px-6 pb-24 pt-16">
         <header className="mb-12 text-center">
-          <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0071e3] to-[#5e5ce6] text-white shadow-[0_8px_24px_rgba(0,113,227,0.25)]">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
-              <rect x="3" y="3" width="18" height="18" rx="3" />
-              <path d="M7 13l3-3 4 4 3-3" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="9" cy="9" r="1" fill="currentColor" />
-            </svg>
-          </div>
+          <img
+            src={chrome.runtime.getURL('icons/icon-128.png')}
+            alt="PromptLens"
+            className="mx-auto mb-6 h-14 w-14 rounded-2xl shadow-[0_8px_24px_rgba(0,113,227,0.25)]"
+          />
           <h1 className="text-[34px] font-semibold leading-tight tracking-tight">
-            img2prompt
+            PromptLens
           </h1>
           <p className="mt-2 text-[15px] text-[#86868b]">
-            把看到的图片变成可用的 AI 绘图 prompt
+            把你喜欢的图，变成能复用的 Prompt
           </p>
         </header>
 

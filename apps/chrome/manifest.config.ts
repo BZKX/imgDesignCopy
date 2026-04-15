@@ -13,7 +13,12 @@ export default defineManifest({
     type: 'module',
   },
   action: {
-    default_title: 'PromptLens · 点击展开面板',
+    default_title: 'PromptLens',
+    default_icon: {
+      16: 'icons/icon-16.png',
+      32: 'icons/icon-32.png',
+      48: 'icons/icon-48.png',
+    },
   },
   options_page: 'src/options/index.html',
   content_scripts: [
@@ -33,5 +38,16 @@ export default defineManifest({
       description: 'Start image selection',
     },
   },
-  icons: {},
+  icons: {
+    16: 'icons/icon-16.png',
+    32: 'icons/icon-32.png',
+    48: 'icons/icon-48.png',
+    128: 'icons/icon-128.png',
+  },
+  web_accessible_resources: [
+    {
+      resources: ['icons/*.png'],
+      matches: ['<all_urls>'],
+    },
+  ],
 });

@@ -202,7 +202,12 @@ function SidePanelInner({ initialView, incoming, onClose, registerCloser }: Side
               <BackIcon />
             </button>
           ) : (
-            <span className="brand-dot" />
+            <img
+              className="brand-logo"
+              src={chrome.runtime.getURL('icons/icon-48.png')}
+              alt=""
+              aria-hidden="true"
+            />
           )}
           <span className="brand">{title}</span>
         </div>

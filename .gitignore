@@ -10,3 +10,6 @@ dist
 playwright-report
 test-results
 coverage
+
+# Next.js build artifacts (should not have been committed in v0.2.0)
+apps/website/.next/

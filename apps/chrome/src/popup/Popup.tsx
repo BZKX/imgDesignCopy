@@ -21,8 +21,13 @@ export function Popup() {
   return (
     <main className="flex w-[340px] flex-col gap-5 bg-white p-6 text-[#1d1d1f]">
       <header className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-[#0071e3]" />
-        <h1 className="text-[15px] font-semibold tracking-tight">img2prompt</h1>
+        <img
+          src={chrome.runtime.getURL('icons/icon-48.png')}
+          alt=""
+          aria-hidden="true"
+          className="h-6 w-6 rounded-md object-contain"
+        />
+        <h1 className="text-[15px] font-semibold tracking-tight">PromptLens</h1>
       </header>
 
       <section className="rounded-2xl bg-[#f5f5f7] p-5">
