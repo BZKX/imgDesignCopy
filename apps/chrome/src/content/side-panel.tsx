@@ -301,7 +301,7 @@ function SidePanelInner({ initialView, incoming, onClose, registerCloser }: Side
         )}
       </div>
 
-      {view.kind === 'result' && view.payload.pageUrl && (
+      {view.kind === 'result' && view.payload.pageUrl ? (
         <footer className="footer">
           <span>Source</span>
           <a
@@ -311,6 +311,18 @@ function SidePanelInner({ initialView, incoming, onClose, registerCloser }: Side
             title={view.payload.pageUrl}
           >
             {view.payload.pageUrl}
+          </a>
+        </footer>
+      ) : (
+        <footer className="footer">
+          <span>PromptLens</span>
+          <a
+            href="https://promptlens.cc"
+            target="_blank"
+            rel="noreferrer"
+            title="promptlens.cc"
+          >
+            promptlens.cc
           </a>
         </footer>
       )}

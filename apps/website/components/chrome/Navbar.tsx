@@ -1,16 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useLocaleContext } from '@/components/scroll/LocaleProvider';
 
 const NAV_LINKS = [
-  { label: 'Why', href: '#problem' },
-  { label: 'How', href: '#how-it-works' },
-  { label: 'Demo', href: '#demo' },
-  { label: 'Features', href: '#features' },
-  { label: 'Platforms', href: '#platforms' },
+  { labelKey: 'modes',     href: '/#style-prompt' },
+  { labelKey: 'features',  href: '/#features' },
+  { labelKey: 'platforms', href: '/#platforms' },
 ];
 
 export default function Navbar() {
+  const t = useTranslations('nav');
+  const { locale, toggleLocale } = useLocaleContext();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const rafRef = useRef<number | null>(null);
@@ -74,7 +76,7 @@ export default function Navbar() {
               flexShrink: 0,
             }}
           >
-            <span aria-hidden="true">◇</span> PromptLens
+            <img src="/logo.png" alt="" width={24} height={24} style={{ borderRadius: 6 }} /> PromptLens
           </a>
 
           {/* Desktop nav links */}
@@ -108,7 +110,7 @@ export default function Navbar() {
                     'var(--color-pl-fg-secondary)')
                 }
               >
-                {link.label}
+                {t(link.labelKey as Parameters<typeof t>[0])}
               </a>
             ))}
           </div>
@@ -119,6 +121,7 @@ export default function Navbar() {
           >
             {/* Locale toggle */}
             <button
+              onClick={toggleLocale}
               style={{
                 padding: '6px 10px',
                 fontSize: '0.8125rem',
@@ -129,32 +132,12 @@ export default function Navbar() {
                 borderRadius: '6px',
               }}
             >
-              中/EN
+              {locale === 'zh-CN' ? 'EN' : '中文'}
             </button>
-
-            {/* GitHub */}
-            <a
-              href="https://github.com/promptlens"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '6px',
-                color: 'var(--color-pl-fg-secondary)',
-                borderRadius: '6px',
-                textDecoration: 'none',
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-            </a>
 
             {/* Install CTA */}
             <a
-              href="#"
+              href="/install"
               style={{
                 padding: '8px 16px',
                 fontSize: '0.875rem',
@@ -166,7 +149,7 @@ export default function Navbar() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Install ↗
+              {t('install')} ↗
             </a>
 
             {/* Mobile hamburger */}
@@ -234,7 +217,7 @@ export default function Navbar() {
                 borderBottom: `1px solid var(--pl-border-subtle)`,
               }}
             >
-              {link.label}
+              {t(link.labelKey as Parameters<typeof t>[0])}
             </a>
           ))}
         </div>

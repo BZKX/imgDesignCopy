@@ -2,19 +2,62 @@
   "nav": {
     "why": "Why",
     "how": "How",
-    "demo": "Demo",
+    "modes": "Modes",
     "features": "Features",
     "platforms": "Platforms",
     "install": "Install"
   },
+  "install": {
+    "eyebrow": "INSTALL",
+    "title": "Get PromptLens running in 60 seconds.",
+    "subtitle": "Install from the Chrome Web Store, or download the offline package if you can't reach Google services.",
+    "storeCard": {
+      "badge": "Recommended",
+      "title": "Chrome Web Store",
+      "description": "One-click install. Auto-updates whenever a new version ships.",
+      "feature1": "Auto-update on every release",
+      "feature2": "Reviewed and signed by Google",
+      "feature3": "Works on Chrome, Edge, Brave, Arc",
+      "cta": "Install from Chrome Web Store"
+    },
+    "zipCard": {
+      "badge": "Offline · No Google account needed",
+      "title": "Direct ZIP download",
+      "description": "For users behind firewalls or without access to Google services. Fully self-contained — no account, no telemetry.",
+      "cta": "Download .zip"
+    },
+    "steps": {
+      "eyebrow": "OFFLINE INSTALL",
+      "title": "Load the unpacked extension in 4 steps.",
+      "step1": {
+        "title": "Unzip the package",
+        "body": "Right-click the downloaded promptlens-chrome-0.2.0.zip and choose Extract / Unzip. You'll get a folder named promptlens-chrome-0.2.0/."
+      },
+      "step2": {
+        "title": "Open Chrome's Extensions page",
+        "body": "Paste this into your address bar:"
+      },
+      "step3": {
+        "title": "Toggle Developer mode",
+        "body": "Top-right of the Extensions page — flip the Developer mode switch on. Three buttons appear (Load unpacked / Pack extension / Update)."
+      },
+      "step4": {
+        "title": "Load unpacked",
+        "body": "Click Load unpacked, then pick the unzipped folder. PromptLens appears in your toolbar — pin it for the keyboard shortcut (⌘⇧Y on Mac, Ctrl+Shift+Y on Windows / Linux)."
+      },
+      "caveat": "Offline-installed extensions don't auto-update. When a new version ships, repeat steps 1–4 (or switch to the Chrome Web Store version once the firewall is no longer in your way)."
+    },
+    "backHome": "Back to home"
+  },
   "hero": {
-    "badge": "v1.0 · Browser + Desktop",
+    "badge": "v0.2.0 · 3 Modes",
     "titleLine1": "Turn any",
     "titleLine2": "screenshot into",
     "titleLine3": "a perfect prompt.",
-    "subtitle": "Capture any region and get a prompt ready to paste into MidJourney, SDXL, or your own model. Local-first, zero server.",
-    "ctaPrimary": "Try Demo",
-    "ctaSecondary": "Install on Chrome"
+    "subtitle": "Style Prompt, Product Visual, Web Design — three ways to turn any image into structured creative intelligence. Local-first, zero server.",
+    "ctaPrimary": "See it in action",
+    "ctaSecondary": "Install on Chrome",
+    "socialProof": "Used by 600+ designers · Free forever"
   },
   "sections": {
     "problem": {
@@ -28,24 +71,169 @@
       "step2Title": "Extract",
       "step3Title": "Prompt"
     },
-    "demo": {
-      "eyebrow": "LIVE DEMO",
-      "title": "Try it without installing."
-    },
     "features": {
       "eyebrow": "FEATURES",
-      "title": "Six small, beautiful details."
+      "title": "Six things you'll quietly love.",
+      "multiProvider": {
+        "title": "Multi-Provider",
+        "description": "OpenAI, Anthropic, Gemini, Ollama — switch providers without switching workflows."
+      },
+      "analysisModes": {
+        "title": "3 Analysis Modes",
+        "description": "Style Prompt, Product Visual, Web Design — three specialized AI lenses for any image."
+      },
+      "dtcgTokens": {
+        "title": "Design Tokens",
+        "description": "Web Design mode outputs DTCG-compliant design tokens: colors, fonts, spacing, radius, shadows."
+      },
+      "shortcuts": {
+        "title": "Shortcuts",
+        "description": "Press ⌘⇧Y anywhere to capture any region. Never leave your creative flow."
+      },
+      "privacy": {
+        "title": "Privacy",
+        "description": "No logs, no proxy. Your images and API keys never touch our servers."
+      },
+      "export": {
+        "title": "Export",
+        "description": "One-click copy, JSON export, or Markdown — wherever your workflow lives."
+      }
     },
     "platforms": {
       "eyebrow": "BUILT FOR YOUR WORKFLOW",
-      "title": "Browser, Mac, and Windows — all covered."
+      "title": "Browser, Mac, and Windows — all covered.",
+      "chrome": {
+        "name": "Chrome Extension",
+        "description": "Free forever",
+        "cta": "Add to Chrome ↗",
+        "badge": "Available now"
+      },
+      "macos": {
+        "name": "macOS Menu Bar",
+        "description": "Universal · M-series & Intel",
+        "cta": "Join Waitlist ↗",
+        "badge": "Coming in v1.1"
+      },
+      "windows": {
+        "name": "Windows Tray",
+        "description": "x64 · Windows 10+",
+        "cta": "Join Waitlist ↗",
+        "badge": "Coming in v1.1"
+      }
     },
     "pricing": {
       "title": "Free forever. Always yours.",
-      "subtitle": "No account, no default telemetry, no vendor lock-in. MIT licensed."
+      "titleLine1": "Always free.",
+      "titleLine2": "Always yours.",
+      "subtitle": "No accounts. No telemetry by default. No vendor lock-in.",
+      "subtitleLine2": "Your data stays on your device.",
+      "bullet1": "Your API keys stay in your browser",
+      "bullet2": "Your images never leave your device",
+      "bullet3": "Works with any LLM provider",
+      "bullet4": "Zero lock-in — export anytime",
+      "cta": "Install on Chrome ↗"
+    },
+    "roadmap": {
+      "eyebrow": "ROADMAP",
+      "title": "What's coming next.",
+      "suggestFeature": "Suggest a feature →",
+      "live": "Live",
+      "now": {
+        "phase": "Now",
+        "title": "Shipped",
+        "description": "Already in your hands.",
+        "item1": "Chrome Extension (MV3)",
+        "item2": "3 Analysis Modes",
+        "item3": "Multi-provider: OpenAI, Anthropic, Gemini",
+        "item4": "Local history (SQLite)",
+        "item5": "JSON / Markdown export"
+      },
+      "next": {
+        "phase": "Next",
+        "title": "Building",
+        "description": "In active development.",
+        "item1": "macOS Menu Bar app",
+        "item2": "Windows Tray app",
+        "item3": "Ollama local-first mode",
+        "item4": "Batch prompt generation"
+      },
+      "later": {
+        "phase": "Later",
+        "title": "Planned",
+        "description": "On the horizon.",
+        "item1": "Firefox extension",
+        "item2": "Figma plugin",
+        "item3": "Style library & presets",
+        "item4": "Team sharing (optional cloud)"
+      }
+    },
+    "stylePrompt": {
+      "eyebrow": "STYLE PROMPT",
+      "title": "Turn any image into a reusable drawing prompt.",
+      "stage1": "Browse your inspiration feed.",
+      "stage2": "PromptLens appears at your side.",
+      "stage3": "Select the image that caught your eye.",
+      "stage4": "Focus. The AI sees what you see.",
+      "stage5": "Vision model reads composition, palette, mood.",
+      "stage6": "Visual data flows into structured language.",
+      "stage7": "A prompt ready for MidJourney, SDXL, or your model.",
+      "outputTitle": "Generated Prompt"
+    },
+    "productVisual": {
+      "eyebrow": "PRODUCT VISUAL",
+      "title": "Unpack any product's visual language.",
+      "stage1": "Land on any product page.",
+      "stage2": "PromptLens appears at your side.",
+      "stage3": "Select the hero product shot.",
+      "stage4": "Focus. Every detail matters.",
+      "stage5": "Six dimensions analyzed simultaneously.",
+      "stage6": "Visual DNA extracted and structured.",
+      "stage7": "CMF, lighting, lens, composition, scene, mood.",
+      "outputTitle": "Visual Analysis"
+    },
+    "webDesign": {
+      "eyebrow": "WEB DESIGN",
+      "title": "Get inspiration from any page or component.",
+      "stage1": "Open any web application.",
+      "stage2": "PromptLens appears at your side.",
+      "stage3": "Select the UI region to analyze.",
+      "stage4": "Focus. Pixel-level precision.",
+      "stage5": "Design system patterns detected.",
+      "stage6": "Tokens extracted in DTCG format.",
+      "stage7": "Colors, fonts, spacing, radius, shadows.",
+      "outputTitle": "Design Tokens"
     },
     "cta": {
-      "title": "See your design through AI eyes."
+      "title": "See your designs through the eyes of an AI.",
+      "titleLine1": "See your designs through",
+      "titleLine2": "the eyes of an AI.",
+      "installChrome": "Install on Chrome ↗",
+      "waitlistPrompt": "Get notified about new features and platforms:",
+      "joinWaitlist": "Join waitlist →",
+      "joining": "Joining…",
+      "waitlistSuccess": "You're on the list!",
+      "waitlistError": "Something went wrong. Try again.",
+      "networkError": "Network error. Try again.",
+      "featurePrefix": "Signing up for:",
+      "footerLinks": {
+        "twitter": "X / Twitter",
+        "discord": "Discord",
+        "privacy": "Privacy",
+        "changelog": "Changelog"
+      }
     }
+  },
+  "extensionPanel": {
+    "modeStylePrompt": "Style Prompt",
+    "modeProductVisual": "Product Visual",
+    "modeWebDesign": "Web Design",
+    "styleLine1": "Turn any image into",
+    "styleLine2": "a reusable prompt",
+    "productLine1": "Decode product design",
+    "productLine2": "visual language",
+    "webLine1": "Extract page design",
+    "webLine2": "and component tokens",
+    "analyzing": "Analyzing…",
+    "copied": "Copied"
   }
 }

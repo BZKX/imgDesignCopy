@@ -51,7 +51,8 @@ export default function PromptLensLogo() {
     >
       <defs>
         <linearGradient id="pl-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7c5cff" />
+          <stop offset="0%" stopColor="#a78bfa" />
+          <stop offset="50%" stopColor="#7c5cff" />
           <stop offset="100%" stopColor="#00e1ff" />
         </linearGradient>
       </defs>

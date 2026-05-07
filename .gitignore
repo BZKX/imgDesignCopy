@@ -1,7 +1,5 @@
 node_modules
 dist
-.omc/state
-.omc/sessions
 .claude/scheduled_tasks.lock
 *.log
 .env
@@ -11,5 +9,25 @@ playwright-report
 test-results
 coverage
 
+# OMC / agent runtime state — never commit (contains conversation traces)
+**/.omc/
+!**/.omc/plans/         # keep human-readable plans
+!**/.omc/notepad.md     # keep notepads
+**/.omc/state/
+**/.omc/sessions/
+**/.omc/logs/
+
+# Editor / IDE configs — personal, not part of the project
+.vscode/
+.idea/
+
+# TypeScript incremental build caches
+*.tsbuildinfo
+
 # Next.js build artifacts (should not have been committed in v0.2.0)
 apps/website/.next/
+
+# Production deploy secrets — only ever live on the VPS
+deploy/.env
+deploy/cert/*
+!deploy/cert/.gitkeep

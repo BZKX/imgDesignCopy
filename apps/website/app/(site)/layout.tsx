@@ -1,5 +1,5 @@
-import GridOverlay from '@/components/chrome/GridOverlay';
 import Navbar from '@/components/chrome/Navbar';
+import SiteBackground from '@/components/chrome/SiteBackground';
 import ClientCursorLoader from '@/components/chrome/ClientCursorLoader';
 import ClientLenisLoader from '@/components/scroll/ClientLenisLoader';
 
@@ -10,7 +10,7 @@ export default function SiteLayout({
 }>) {
   return (
     <ClientLenisLoader>
-      <GridOverlay />
+      <SiteBackground />
       <Navbar />
       <main style={{ position: 'relative', zIndex: 10 }}>{children}</main>
       <ClientCursorLoader />

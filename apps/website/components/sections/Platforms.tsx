@@ -1,33 +1,18 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
-const PLATFORMS = [
-  {
-    id: 'chrome',
-    name: 'Chrome Extension',
-    description: 'Free · Open source',
-    cta: 'Add to Chrome ↗',
-    ctaHref: '#',
-    badge: 'Available now',
-  },
-  {
-    id: 'macos',
-    name: 'macOS Menu Bar',
-    description: 'Universal · M-series & Intel',
-    cta: 'Download .dmg ↗',
-    ctaHref: '#',
-    badge: 'Available now',
-  },
-  {
-    id: 'windows',
-    name: 'Windows Tray',
-    description: 'x64 · Windows 10+',
-    cta: 'Download .msi ↗',
-    ctaHref: '#',
-    badge: 'Available now',
-  },
-] as const;
+interface PlatformDef {
+  id: 'chrome' | 'macos' | 'windows';
+  ctaHref: string;
+}
+
+const PLATFORM_DEFS: PlatformDef[] = [
+  { id: 'chrome',   ctaHref: '/install' },
+  { id: 'macos',    ctaHref: '#waitlist' },
+  { id: 'windows',  ctaHref: '#waitlist' },
+];
 
 // Chrome browser mockup SVG
 function ChromeMockup({ tilted }: { tilted: boolean }) {
@@ -56,7 +41,7 @@ function ChromeMockup({ tilted }: { tilted: boolean }) {
       <circle cx="52" cy="19" r="5" fill="#28c840" />
       {/* Address bar */}
       <rect x="70" y="11" width="140" height="16" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-      <text x="140" y="22" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.3)" fontFamily="monospace">promptlens.app</text>
+      <text x="140" y="22" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.3)" fontFamily="monospace">promptlens.cc</text>
       {/* Page content area */}
       <rect x="12" y="44" width="256" height="148" rx="4" fill="#0d0d12" />
       {/* Content skeleton */}
@@ -213,11 +198,27 @@ function WindowsMockup({ tilted }: { tilted: boolean }) {
 
 const MOCKUPS = [ChromeMockup, MacMockup, WindowsMockup];
 
-function PlatformCard({ platform, index }: { platform: (typeof PLATFORMS)[number]; index: number }) {
+function PlatformCard({
+  def,
+  index,
+  name,
+  description,
+  cta,
+  badge,
+}: {
+  def: PlatformDef;
+  index: number;
+  name: string;
+  description: string;
+  cta: string;
+  badge: string;
+}) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilted, setTilted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+
+  const isAvailable = def.id === 'chrome';
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -267,16 +268,34 @@ function PlatformCard({ platform, index }: { platform: (typeof PLATFORMS)[number
 
       {/* Info */}
       <div style={{ marginTop: '28px' }}>
-        <h3
-          style={{
-            fontSize: '1.25rem',
-            fontWeight: 600,
-            color: 'var(--color-pl-fg-primary)',
-            margin: '0 0 6px',
-          }}
-        >
-          {platform.name}
-        </h3>
+        {/* Name + badge row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+          <h3
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              color: 'var(--color-pl-fg-primary)',
+              margin: 0,
+            }}
+          >
+            {name}
+          </h3>
+          <span
+            style={{
+              fontSize: '0.6875rem',
+              fontFamily: 'var(--font-pl-mono)',
+              fontWeight: 500,
+              padding: '2px 8px',
+              borderRadius: '999px',
+              border: `1px solid ${isAvailable ? 'rgba(46,229,157,0.3)' : 'rgba(124,92,255,0.3)'}`,
+              background: isAvailable ? 'rgba(46,229,157,0.08)' : 'rgba(124,92,255,0.08)',
+              color: isAvailable ? '#2ee59d' : 'var(--color-pl-accent-from)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {badge}
+          </span>
+        </div>
         <p
           style={{
             fontSize: '0.875rem',
@@ -284,10 +303,21 @@ function PlatformCard({ platform, index }: { platform: (typeof PLATFORMS)[number
             margin: '0 0 16px',
           }}
         >
-          {platform.description}
+          {description}
         </p>
         <a
-          href={platform.ctaHref}
+          href={def.ctaHref}
+          onClick={() => {
+            // For waitlist CTAs, tag the form with the platform the user came from.
+            // WaitlistForm reads this on mount and includes it in the submission.
+            if (def.ctaHref === '#waitlist' && typeof window !== 'undefined') {
+              try {
+                window.sessionStorage.setItem('pl_waitlist_feature', def.id);
+              } catch {
+                // Safari private mode etc. — silently fall back to no feature tag
+              }
+            }
+          }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -311,7 +341,7 @@ function PlatformCard({ platform, index }: { platform: (typeof PLATFORMS)[number
             (e.currentTarget as HTMLElement).style.background = 'transparent';
           }}
         >
-          {platform.cta}
+          {cta}
         </a>
       </div>
     </div>
@@ -319,12 +349,14 @@ function PlatformCard({ platform, index }: { platform: (typeof PLATFORMS)[number
 }
 
 export default function Platforms() {
+  const t = useTranslations('sections.platforms');
+
   return (
     <section
       id="platforms"
       aria-label="Platforms"
       style={{
-        paddingBlock: '128px',
+        paddingBlock: 'clamp(80px, 12vw, 128px)',
         position: 'relative',
         zIndex: 10,
       }}
@@ -333,7 +365,7 @@ export default function Platforms() {
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0 96px',
+          padding: '0 clamp(20px, 7vw, 96px)',
         }}
       >
         {/* Header */}
@@ -347,7 +379,7 @@ export default function Platforms() {
             margin: '0 0 12px',
           }}
         >
-          BUILT FOR YOUR WORKFLOW
+          {t('eyebrow')}
         </p>
         <h2
           style={{
@@ -358,7 +390,7 @@ export default function Platforms() {
             margin: '0 0 64px',
           }}
         >
-          Browser, Mac, and Windows — all covered.
+          {t('title')}
         </h2>
 
         {/* Platform cards */}
@@ -369,16 +401,23 @@ export default function Platforms() {
             flexWrap: 'wrap',
           }}
         >
-          {PLATFORMS.map((platform, index) => (
-            <PlatformCard key={platform.id} platform={platform} index={index} />
+          {PLATFORM_DEFS.map((def, index) => (
+            <PlatformCard
+              key={def.id}
+              def={def}
+              index={index}
+              name={t(`${def.id}.name`)}
+              description={t(`${def.id}.description`)}
+              cta={t(`${def.id}.cta`)}
+              badge={t(`${def.id}.badge`)}
+            />
           ))}
         </div>
       </div>
 
       <style>{`
         @media (max-width: 767px) {
-          #platforms > div { padding: 0 20px !important; }
-          #platforms > div > div:last-child { flex-direction: column !important; }
+          #platforms > div > div:last-child { flex-direction: column !important; gap: 48px !important; }
         }
       `}</style>
     </section>

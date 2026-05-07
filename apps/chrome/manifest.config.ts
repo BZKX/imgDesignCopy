@@ -6,8 +6,9 @@ export default defineManifest({
   name: 'PromptLens',
   version: pkg.version,
   description: pkg.description,
+  homepage_url: 'https://promptlens.cc',
   minimum_chrome_version: '120',
-  permissions: ['activeTab', 'storage', 'scripting'],
+  permissions: ['activeTab', 'storage'],
   background: {
     service_worker: 'src/background/index.ts',
     type: 'module',

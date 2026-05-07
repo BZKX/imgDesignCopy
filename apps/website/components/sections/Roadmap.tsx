@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 type RoadmapStatus = 'shipped' | 'building' | 'planned';
 
@@ -15,45 +16,6 @@ interface RoadmapQuadrant {
   description: string;
   items: RoadmapItem[];
 }
-
-const ROADMAP: RoadmapQuadrant[] = [
-  {
-    phase: 'Now',
-    title: 'Shipped',
-    description: 'Already in your hands.',
-    items: [
-      { label: 'Chrome Extension (MV3)', status: 'shipped' },
-      { label: 'Multi-provider: OpenAI, Anthropic, Gemini', status: 'shipped' },
-      { label: 'Local history (SQLite)', status: 'shipped' },
-      { label: 'JSON / Markdown export', status: 'shipped' },
-      { label: 'Screenshot region capture', status: 'shipped' },
-    ],
-  },
-  {
-    phase: 'Next',
-    title: 'Building',
-    description: 'In active development.',
-    items: [
-      { label: 'macOS Menu Bar app', status: 'building' },
-      { label: 'Windows Tray app', status: 'building' },
-      { label: 'Global shortcut ⌘⇧Y', status: 'building' },
-      { label: 'Ollama local-first mode', status: 'building' },
-      { label: 'Batch prompt generation', status: 'planned' },
-    ],
-  },
-  {
-    phase: 'Later',
-    title: 'Planned',
-    description: 'On the horizon.',
-    items: [
-      { label: 'Firefox extension', status: 'planned' },
-      { label: 'Figma plugin', status: 'planned' },
-      { label: 'Style library & presets', status: 'planned' },
-      { label: 'Team sharing (optional cloud)', status: 'planned' },
-      { label: 'Pro tier (priority features)', status: 'planned' },
-    ],
-  },
-];
 
 const STATUS_COLORS: Record<RoadmapStatus, string> = {
   shipped: '#2ee59d',
@@ -151,7 +113,7 @@ function QuadrantCard({ quadrant, index }: { quadrant: RoadmapQuadrant; index: n
                 display: 'inline-block',
               }}
             />
-            Live
+            {quadrant.phase}
           </span>
         )}
       </div>
@@ -214,13 +176,7 @@ function QuadrantCard({ quadrant, index }: { quadrant: RoadmapQuadrant; index: n
             >
               {STATUS_LABELS[item.status]}
             </span>
-            <span
-              style={{
-                textDecoration: item.status === 'shipped' ? 'none' : 'none',
-              }}
-            >
-              {item.label}
-            </span>
+            <span>{item.label}</span>
           </li>
         ))}
       </ul>
@@ -229,12 +185,51 @@ function QuadrantCard({ quadrant, index }: { quadrant: RoadmapQuadrant; index: n
 }
 
 export default function Roadmap() {
+  const t = useTranslations('sections.roadmap');
+
+  const ROADMAP: RoadmapQuadrant[] = [
+    {
+      phase: t('now.phase'),
+      title: t('now.title'),
+      description: t('now.description'),
+      items: [
+        { label: t('now.item1'), status: 'shipped' },
+        { label: t('now.item2'), status: 'shipped' },
+        { label: t('now.item3'), status: 'shipped' },
+        { label: t('now.item4'), status: 'shipped' },
+        { label: t('now.item5'), status: 'shipped' },
+      ],
+    },
+    {
+      phase: t('next.phase'),
+      title: t('next.title'),
+      description: t('next.description'),
+      items: [
+        { label: t('next.item1'), status: 'building' },
+        { label: t('next.item2'), status: 'building' },
+        { label: t('next.item3'), status: 'building' },
+        { label: t('next.item4'), status: 'planned' },
+      ],
+    },
+    {
+      phase: t('later.phase'),
+      title: t('later.title'),
+      description: t('later.description'),
+      items: [
+        { label: t('later.item1'), status: 'planned' },
+        { label: t('later.item2'), status: 'planned' },
+        { label: t('later.item3'), status: 'planned' },
+        { label: t('later.item4'), status: 'planned' },
+      ],
+    },
+  ];
+
   return (
     <section
       id="roadmap"
       aria-label="Roadmap"
       style={{
-        paddingBlock: '128px',
+        paddingBlock: 'clamp(80px, 12vw, 128px)',
         position: 'relative',
         zIndex: 10,
       }}
@@ -243,7 +238,7 @@ export default function Roadmap() {
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0 96px',
+          padding: '0 clamp(20px, 7vw, 96px)',
         }}
       >
         {/* Header */}
@@ -257,7 +252,7 @@ export default function Roadmap() {
             margin: '0 0 12px',
           }}
         >
-          ROADMAP
+          {t('eyebrow')}
         </p>
         <div
           style={{
@@ -278,12 +273,10 @@ export default function Roadmap() {
               margin: 0,
             }}
           >
-            What&apos;s coming next.
+            {t('title')}
           </h2>
           <a
-            href="https://github.com/promptlens"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#"
             style={{
               fontSize: '0.875rem',
               color: 'var(--color-pl-fg-tertiary)',
@@ -300,7 +293,7 @@ export default function Roadmap() {
               (e.currentTarget as HTMLElement).style.color = 'var(--color-pl-fg-tertiary)';
             }}
           >
-            Suggest a feature →
+            {t('suggestFeature')}
           </a>
         </div>
 
@@ -318,11 +311,6 @@ export default function Roadmap() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 767px) {
-          #roadmap > div { padding: 0 20px !important; }
-        }
-      `}</style>
     </section>
   );
 }

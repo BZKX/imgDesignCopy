@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { appendFile } from 'fs/promises';
+import { Resend } from 'resend';
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -13,7 +14,6 @@ const schema = z.object({
 
 // ---------------------------------------------------------------------------
 // Rate limiting (in-process, per-instance — good enough for low traffic)
-// For production at scale, swap the Map for Vercel KV INCR + TTL.
 // ---------------------------------------------------------------------------
 
 const rlMap = new Map<string, number[]>();
@@ -30,42 +30,91 @@ function checkRateLimit(ip: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Storage
+// Storage: Resend Audiences (primary) + local fallback (dev / Resend down)
 // ---------------------------------------------------------------------------
 
-async function persistEntry(entry: Record<string, unknown>): Promise<void> {
-  const line = JSON.stringify({ ...entry, ts: new Date().toISOString() });
+interface WaitlistEntry {
+  email: string;
+  feature: string | null;
+  ip: string;
+}
 
-  // Primary: Vercel KV REST API (set KV_REST_API_URL + KV_REST_API_TOKEN in Vercel dashboard)
-  const kvUrl = process.env.KV_REST_API_URL;
-  const kvToken = process.env.KV_REST_API_TOKEN;
-  if (kvUrl && kvToken) {
-    try {
-      const res = await fetch(`${kvUrl}/lpush/waitlist`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${kvToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([line]),
-      });
-      if (res.ok) return;
-      console.error('[waitlist] KV error:', res.status, await res.text());
-    } catch (err) {
-      console.error('[waitlist] KV fetch failed:', err);
-    }
+/** Map feature → audience ID. Each feature can have its own Resend Audience.
+ *  Use `||` (not `??`) so empty-string env vars (RESEND_AUDIENCE_ID_MACOS=) fall through. */
+function audienceIdFor(feature: string | null): string | undefined {
+  if (feature === 'macos')   return process.env.RESEND_AUDIENCE_ID_MACOS   || process.env.RESEND_AUDIENCE_ID;
+  if (feature === 'windows') return process.env.RESEND_AUDIENCE_ID_WINDOWS || process.env.RESEND_AUDIENCE_ID;
+  return process.env.RESEND_AUDIENCE_ID;
+}
+
+async function addToResendAudience(entry: WaitlistEntry): Promise<{
+  ok: boolean;
+  reason?: string;
+}> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const audienceId = audienceIdFor(entry.feature);
+  if (!apiKey || !audienceId) {
+    return { ok: false, reason: 'no-credentials' };
   }
 
-  // Fallback: append to /tmp/waitlist.jsonl (dev-friendly, works in Node.js runtime)
+  try {
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.contacts.create({
+      email: entry.email,
+      audienceId,
+      unsubscribed: false,
+    });
+    if (error) {
+      // 409 Conflict = already in audience; treat as success (idempotent)
+      const isDuplicate = /already exists|conflict/i.test(error.message ?? '');
+      if (isDuplicate) return { ok: true, reason: 'duplicate' };
+      console.error('[waitlist] Resend error:', error);
+      return { ok: false, reason: error.message ?? 'resend-error' };
+    }
+    if (!data) return { ok: false, reason: 'no-data' };
+    return { ok: true };
+  } catch (err) {
+    console.error('[waitlist] Resend exception:', err);
+    return { ok: false, reason: 'exception' };
+  }
+}
+
+/**
+ * Optional: send a notification email to the founder when someone signs up.
+ * Only fires if both env vars are set AND the sender domain is verified
+ * in Resend. Failures are silent — primary success path is `addToResendAudience`.
+ */
+async function notifyFounder(entry: WaitlistEntry): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.WAITLIST_NOTIFY_FROM;
+  const to = process.env.WAITLIST_NOTIFY_TO;
+  if (!apiKey || !from || !to) return;
+
+  try {
+    const resend = new Resend(apiKey);
+    await resend.emails.send({
+      from,
+      to,
+      subject: `[PromptLens] New waitlist signup: ${entry.email}`,
+      text: [
+        `Email:   ${entry.email}`,
+        `Feature: ${entry.feature ?? '(none)'}`,
+        `IP:      ${entry.ip}`,
+        `Time:    ${new Date().toISOString()}`,
+      ].join('\n'),
+    });
+  } catch (err) {
+    console.error('[waitlist] notification email failed:', err);
+  }
+}
+
+async function persistFallback(entry: WaitlistEntry): Promise<void> {
+  const line = JSON.stringify({ ...entry, ts: new Date().toISOString() });
   try {
     await appendFile('/tmp/waitlist.jsonl', line + '\n', 'utf8');
-    return;
-  } catch (err) {
-    // Edge runtime or read-only filesystem — log as last resort
+  } catch {
+    // Edge runtime / read-only fs — last-resort log so the entry isn't lost
     console.log('[waitlist:entry]', line);
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[waitlist] Could not write to /tmp:', err);
-    }
   }
 }
 
@@ -74,24 +123,18 @@ async function persistEntry(entry: Record<string, unknown>): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  // Resolve IP
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     req.headers.get('x-real-ip') ??
     'unknown';
 
-  // Rate limit
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
-      {
-        error: 'rate_limit',
-        message: 'Too many requests. Please try again in an hour.',
-      },
+      { error: 'rate_limit', message: 'Too many requests. Please try again in an hour.' },
       { status: 429 },
     );
   }
 
-  // Parse body
   let raw: unknown;
   try {
     raw = await req.json();
@@ -102,7 +145,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // Validate
   const result = schema.safeParse(raw);
   if (!result.success) {
     const first = result.error.errors[0];
@@ -116,18 +158,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { email, feature } = result.data;
+  const entry: WaitlistEntry = {
+    email: result.data.email,
+    feature: result.data.feature ?? null,
+    ip,
+  };
 
-  // Persist (fire-and-forget errors are caught internally)
-  await persistEntry({ email, feature: feature ?? null });
+  const resendResult = await addToResendAudience(entry);
 
+  if (!resendResult.ok) {
+    // Always keep a local trail so we never lose a signup, even when Resend is unconfigured/down
+    await persistFallback(entry);
+  }
+
+  // Fire-and-forget founder notification (non-blocking; await for cleaner logs)
+  await notifyFounder(entry);
+
+  // We treat duplicates as success ("you're on the list" is still true)
   return NextResponse.json(
     { success: true, message: "You're on the list! We'll reach out when it's ready." },
     { status: 200 },
   );
 }
 
-// Reject other methods explicitly
 export async function GET(): Promise<NextResponse> {
   return NextResponse.json({ error: 'method_not_allowed' }, { status: 405 });
 }

@@ -4,13 +4,10 @@ import { useT } from '@/lib/i18n';
 
 type DesignTokens = NonNullable<WebDesign['tokens']>;
 
-type ExportTab = 'dtcg' | 'tailwind' | 'css' | 'shadcn' | 'figma';
+type ExportTab = 'skill' | 'figma';
 
 const EXPORT_TABS: { key: ExportTab; label: string }[] = [
-  { key: 'dtcg', label: 'W3C DTCG' },
-  { key: 'tailwind', label: 'Tailwind' },
-  { key: 'css', label: 'CSS Variables' },
-  { key: 'shadcn', label: 'shadcn' },
+  { key: 'skill', label: 'Skill.md' },
   { key: 'figma', label: 'Figma' },
 ];
 
@@ -51,6 +48,9 @@ export function WebDesignRenderer({ result }: { result: WebDesign }) {
       {result.tokens && hasAnyToken(result.tokens) && (
         <TokensView tokens={result.tokens} />
       )}
+      <Section title={t('renderer.web.export')}>
+        <DesignExports result={result} />
+      </Section>
     </div>
   );
 }
@@ -123,18 +123,19 @@ function TokensView({ tokens }: { tokens: DesignTokens }) {
           </SubSection>
         )}
       </Section>
-      <Section title={t('renderer.web.tokens.export')}>
-        <TokenExports tokens={tokens} />
-      </Section>
     </>
   );
 }
 
-function TokenExports({ tokens }: { tokens: DesignTokens }) {
+function DesignExports({ result }: { result: WebDesign }) {
   const { t } = useT();
-  const [tab, setTab] = useState<ExportTab>('dtcg');
-  const payloads = useMemo(() => buildExports(tokens), [tokens]);
+  const [tab, setTab] = useState<ExportTab>('skill');
+  const payloads = useMemo(() => buildExports(result), [result]);
   const current = payloads[tab];
+  const hint =
+    tab === 'figma'
+      ? t('renderer.web.tokens.figmaHint')
+      : t('renderer.web.skillHint');
   return (
     <>
       <div className="segment" role="tablist">
@@ -151,37 +152,51 @@ function TokenExports({ tokens }: { tokens: DesignTokens }) {
           </button>
         ))}
       </div>
-      {tab === 'figma' ? (
-        <ExportPane text={current} hint={t('renderer.web.tokens.figmaHint')} />
-      ) : (
-        <ExportPane text={current} />
-      )}
+      <ExportPane text={current} hint={hint} />
     </>
   );
 }
 
 function ExportPane({ text, hint }: { text: string; hint?: string }) {
   const { t } = useT();
-  const [toast, setToast] = useState(false);
+  const [copied, setCopied] = useState(false);
   async function copy() {
     try {
       await navigator.clipboard.writeText(text);
-      setToast(true);
-      setTimeout(() => setToast(false), 1500);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
     } catch {
       /* ignore */
     }
   }
   return (
     <div className="sub-card">
-      <div className="actions">
-        <button type="button" className="btn btn-primary" onClick={copy}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 12,
+          marginBottom: hint ? 8 : 0,
+        }}
+      >
+        {hint ? (
+          <div className="sub-card-label" style={{ flex: 1, margin: 0 }}>
+            {hint}
+          </div>
+        ) : (
+          <span />
+        )}
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={copy}
+          style={{ flexShrink: 0 }}
+        >
           <CopyIcon />
-          {t('common.copy')}
+          {copied ? t('common.copied') : t('common.copy')}
         </button>
-        <span className={`toast ${toast ? 'visible' : ''}`}>{t('common.copied')}</span>
       </div>
-      {hint && <div className="sub-card-label">{hint}</div>}
       <pre>{text}</pre>
     </div>
   );
@@ -254,144 +269,8 @@ function CopyIcon() {
 
 // ---------- code-gen helpers ----------
 
-function dottedToKebab(key: string): string {
-  return key.replace(/\./g, '-').replace(/_/g, '-');
-}
-
-type ColorMap = NonNullable<DesignTokens['color']>;
-type FontSizeMap = NonNullable<DesignTokens['font_size']>;
-type SimpleMap = Record<string, string>;
-
-function dottedToNestedColors(obj: ColorMap): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, v] of Object.entries(obj)) {
-    assignNested(out, key.split('.'), v.value);
-  }
-  return out;
-}
-
-function dottedToNestedStrings(obj: SimpleMap): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, v] of Object.entries(obj)) {
-    assignNested(out, key.split('.'), v);
-  }
-  return out;
-}
-
-function assignNested(root: Record<string, unknown>, path: string[], value: string) {
-  let cur: Record<string, unknown> = root;
-  for (let i = 0; i < path.length - 1; i++) {
-    const seg = path[i];
-    const existing = cur[seg];
-    if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
-      cur = existing as Record<string, unknown>;
-    } else {
-      // Nesting collision: earlier assignment placed a string at this node.
-      // Resolve by moving that string to a DEFAULT key so the nesting can continue.
-      const nextObj: Record<string, unknown> = {};
-      if (typeof existing === 'string') nextObj.DEFAULT = existing;
-      cur[seg] = nextObj;
-      cur = nextObj;
-    }
-  }
-  const last = path[path.length - 1];
-  const existing = cur[last];
-  if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
-    (existing as Record<string, unknown>).DEFAULT = value;
-  } else {
-    cur[last] = value;
-  }
-}
-
-function fontSizeToTailwind(obj: FontSizeMap): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, v] of Object.entries(obj)) {
-    if (v.line_height) {
-      out[key] = [v.value, { lineHeight: v.line_height }];
-    } else {
-      out[key] = v.value;
-    }
-  }
-  return out;
-}
-
-function parseHex(input: string): { r: number; g: number; b: number } | null {
-  const raw = input.trim();
-  const m = raw.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/);
-  if (!m) return null;
-  let hex = m[1];
-  if (hex.length === 3) {
-    hex = hex
-      .split('')
-      .map((c) => c + c)
-      .join('');
-  }
-  // Drop alpha if present
-  if (hex.length === 8) hex = hex.slice(0, 6);
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  if ([r, g, b].some((n) => Number.isNaN(n))) return null;
-  return { r, g, b };
-}
-
-function hexToHsl(hex: string): string {
-  const rgb = parseHex(hex);
-  if (!rgb) return `/* invalid hex: ${hex} */ 0 0% 0%`;
-  const r = rgb.r / 255;
-  const g = rgb.g / 255;
-  const b = rgb.b / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  let h = 0;
-  let s = 0;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-  const H = Math.round(h * 360);
-  const S = Math.round(s * 100);
-  const L = Math.round(l * 100);
-  return `${H} ${S}% ${L}%`;
-}
-
 function prettyJson(obj: unknown): string {
   return JSON.stringify(obj, null, 2);
-}
-
-// Emit a Tailwind-style JS object literal (unquoted keys when safe).
-function toJsObjectLiteral(value: unknown, indent = 0): string {
-  const pad = (n: number) => ' '.repeat(n);
-  if (value === null) return 'null';
-  if (typeof value === 'string') return JSON.stringify(value);
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (Array.isArray(value)) {
-    const inner = value.map((v) => toJsObjectLiteral(v, indent + 2)).join(', ');
-    return `[${inner}]`;
-  }
-  if (typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>);
-    if (entries.length === 0) return '{}';
-    const lines = entries.map(([k, v]) => {
-      const key = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
-      return `${pad(indent + 2)}${key}: ${toJsObjectLiteral(v, indent + 2)}`;
-    });
-    return `{\n${lines.join(',\n')}\n${pad(indent)}}`;
-  }
-  return 'undefined';
 }
 
 // Tokens Studio (Figma) JSON format
@@ -469,97 +348,119 @@ function toTokensStudio(tokens: DesignTokens): Record<string, TSNode> {
   return out as Record<string, TSNode>;
 }
 
-function buildExports(tokens: DesignTokens): Record<ExportTab, string> {
-  // DTCG: wrap under "tokens" root. Use the token object as-is (already DTCG-compatible shorthand).
-  const dtcg = prettyJson({ tokens });
+function buildExports(result: WebDesign): Record<ExportTab, string> {
+  const skill = buildSkillMd(result);
+  const figma = result.tokens ? prettyJson(toTokensStudio(result.tokens)) : '{}';
+  return { skill, figma };
+}
 
-  // Tailwind
-  const twExtend: Record<string, unknown> = {};
-  if (tokens.color && Object.keys(tokens.color).length) {
-    twExtend.colors = dottedToNestedColors(tokens.color);
-  }
-  if (tokens.font_size && Object.keys(tokens.font_size).length) {
-    twExtend.fontSize = fontSizeToTailwind(tokens.font_size);
-  }
-  if (tokens.spacing && Object.keys(tokens.spacing).length) {
-    twExtend.spacing = dottedToNestedStrings(tokens.spacing);
-  }
-  if (tokens.radius && Object.keys(tokens.radius).length) {
-    twExtend.borderRadius = dottedToNestedStrings(tokens.radius);
-  }
-  if (tokens.shadow && Object.keys(tokens.shadow).length) {
-    twExtend.boxShadow = dottedToNestedStrings(tokens.shadow);
-  }
-  const tailwind =
-    '/** @type {import("tailwindcss").Config} */\nmodule.exports = ' +
-    toJsObjectLiteral({ theme: { extend: twExtend } }) +
-    ';';
+// Produce a skill-style markdown document describing the captured design.
+// Intended to be dropped into an AI agent / design workflow as a reusable
+// reference for reproducing the page's look-and-feel.
+function buildSkillMd(result: WebDesign): string {
+  const lines: string[] = [];
+  lines.push('# Design Skill');
+  lines.push('');
+  lines.push(
+    'Structured design reference extracted by PromptLens. Apply to Figma, code, or AI design workflows to reproduce this page\'s look and feel.',
+  );
+  lines.push('');
 
-  // CSS variables (plain)
-  const cssLines: string[] = [':root {'];
-  if (tokens.color) {
-    for (const [k, v] of Object.entries(tokens.color)) {
-      cssLines.push(`  --${dottedToKebab(k)}: ${v.value};`);
-    }
-  }
-  if (tokens.font_size) {
-    for (const [k, v] of Object.entries(tokens.font_size)) {
-      cssLines.push(`  --fs-${dottedToKebab(k)}: ${v.value};`);
-      if (v.line_height) cssLines.push(`  --lh-${dottedToKebab(k)}: ${v.line_height};`);
-    }
-  }
-  if (tokens.spacing) {
-    for (const [k, v] of Object.entries(tokens.spacing)) {
-      cssLines.push(`  --sp-${dottedToKebab(k)}: ${v};`);
-    }
-  }
-  if (tokens.radius) {
-    for (const [k, v] of Object.entries(tokens.radius)) {
-      cssLines.push(`  --radius-${dottedToKebab(k)}: ${v};`);
-    }
-  }
-  if (tokens.shadow) {
-    for (const [k, v] of Object.entries(tokens.shadow)) {
-      cssLines.push(`  --shadow-${dottedToKebab(k)}: ${v};`);
-    }
-  }
-  cssLines.push('}');
-  const css = cssLines.join('\n');
+  lines.push('## Layout');
+  lines.push(result.layout);
+  lines.push('');
 
-  // shadcn: HSL for colors, raw for others. Light only.
-  const shadcnLines: string[] = [':root {'];
-  if (tokens.color) {
-    for (const [k, v] of Object.entries(tokens.color)) {
-      const hsl = hexToHsl(v.value);
-      shadcnLines.push(`  --${dottedToKebab(k)}: ${hsl};`);
-    }
-  }
-  if (tokens.font_size) {
-    for (const [k, v] of Object.entries(tokens.font_size)) {
-      shadcnLines.push(`  --fs-${dottedToKebab(k)}: ${v.value};`);
-    }
-  }
-  if (tokens.spacing) {
-    for (const [k, v] of Object.entries(tokens.spacing)) {
-      shadcnLines.push(`  --sp-${dottedToKebab(k)}: ${v};`);
-    }
-  }
-  if (tokens.radius) {
-    for (const [k, v] of Object.entries(tokens.radius)) {
-      shadcnLines.push(`  --radius-${dottedToKebab(k)}: ${v};`);
-    }
-  }
-  if (tokens.shadow) {
-    for (const [k, v] of Object.entries(tokens.shadow)) {
-      shadcnLines.push(`  --shadow-${dottedToKebab(k)}: ${v};`);
-    }
-  }
-  shadcnLines.push('}');
-  shadcnLines.push('');
-  shadcnLines.push('/* Usage: color: hsl(var(--brand-primary)); */');
-  const shadcn = shadcnLines.join('\n');
+  lines.push('## Typography');
+  lines.push(`- Heading: ${result.typography.heading}`);
+  lines.push(`- Body: ${result.typography.body}`);
+  lines.push('');
 
-  const figma = prettyJson(toTokensStudio(tokens));
+  lines.push('## Colors');
+  lines.push(`- Primary: \`${result.colors.primary}\``);
+  if (result.colors.accents.length) {
+    lines.push(
+      `- Accents: ${result.colors.accents.map((c) => `\`${c}\``).join(', ')}`,
+    );
+  }
+  lines.push('');
 
-  return { dtcg, tailwind, css, shadcn, figma };
+  lines.push('## Components');
+  for (const c of result.components) {
+    lines.push(`- ${c}`);
+  }
+  lines.push('');
+
+  lines.push('## Interactions');
+  for (const i of result.interactions) {
+    lines.push(`- ${i}`);
+  }
+  lines.push('');
+
+  lines.push('## Tone');
+  lines.push(result.tone);
+  lines.push('');
+
+  const tokens = result.tokens;
+  if (tokens && hasAnyToken(tokens)) {
+    lines.push('## Design Tokens');
+    lines.push('');
+
+    if (tokens.color && Object.keys(tokens.color).length) {
+      lines.push('### Color');
+      lines.push('| Name | Value |');
+      lines.push('|------|-------|');
+      for (const [name, v] of Object.entries(tokens.color)) {
+        lines.push(`| \`${name}\` | \`${v.value}\` |`);
+      }
+      lines.push('');
+    }
+
+    if (tokens.font_size && Object.keys(tokens.font_size).length) {
+      lines.push('### Font Size');
+      lines.push('| Name | Size | Line Height |');
+      lines.push('|------|------|-------------|');
+      for (const [name, v] of Object.entries(tokens.font_size)) {
+        lines.push(
+          `| \`${name}\` | \`${v.value}\` | ${v.line_height ? `\`${v.line_height}\`` : '—'} |`,
+        );
+      }
+      lines.push('');
+    }
+
+    if (tokens.spacing && Object.keys(tokens.spacing).length) {
+      lines.push('### Spacing');
+      lines.push('| Name | Value |');
+      lines.push('|------|-------|');
+      for (const [name, v] of Object.entries(tokens.spacing)) {
+        lines.push(`| \`${name}\` | \`${v}\` |`);
+      }
+      lines.push('');
+    }
+
+    if (tokens.radius && Object.keys(tokens.radius).length) {
+      lines.push('### Radius');
+      lines.push('| Name | Value |');
+      lines.push('|------|-------|');
+      for (const [name, v] of Object.entries(tokens.radius)) {
+        lines.push(`| \`${name}\` | \`${v}\` |`);
+      }
+      lines.push('');
+    }
+
+    if (tokens.shadow && Object.keys(tokens.shadow).length) {
+      lines.push('### Shadow');
+      lines.push('| Name | Value |');
+      lines.push('|------|-------|');
+      for (const [name, v] of Object.entries(tokens.shadow)) {
+        lines.push(`| \`${name}\` | \`${v}\` |`);
+      }
+      lines.push('');
+    }
+  }
+
+  lines.push('---');
+  lines.push('Generated by PromptLens · promptlens.cc');
+  lines.push('');
+
+  return lines.join('\n');
 }

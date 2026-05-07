@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import PromptLensLogo from '@/components/chrome/PromptLensLogo';
@@ -34,7 +33,7 @@ function makeItem(reduced: boolean) {
 function CtaPrimary({ label, reduced }: { label: string; reduced: boolean }) {
   return (
     <motion.a
-      href="#demo"
+      href="#style-prompt"
       className="pl-cta-primary"
       whileHover={
         reduced
@@ -72,9 +71,7 @@ function CtaPrimary({ label, reduced }: { label: string; reduced: boolean }) {
 function CtaSecondary({ label }: { label: string }) {
   return (
     <motion.a
-      href="https://chrome.google.com/webstore"
-      target="_blank"
-      rel="noopener noreferrer"
+      href="/install"
       className="pl-cta-secondary"
       whileTap={{ scale: 0.98 }}
       style={{
@@ -99,87 +96,6 @@ function CtaSecondary({ label }: { label: string }) {
     >
       {label} ↗
     </motion.a>
-  );
-}
-
-// TODO: Replace this placeholder card with the real product screenshot once
-//       /stage/style and /stage/product pages are live. See DESIGN.md §3 S1
-//       for target dimensions (1440×900). The -webkit-box-reflect CSS class
-//       (hero-mirror-reflect) handles the CSS reflection below the card.
-function MirrorPlaceholder() {
-  return (
-    <div
-      className="hero-mirror-reflect"
-      style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}
-      aria-hidden="true"
-    >
-      <div
-        className="hero-mirror-card"
-        style={{
-          height: '400px',
-          background: 'var(--color-pl-bg-elev-1, #0d0d12)',
-          borderRadius: 'var(--radius-pl-xl, 20px)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '14px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Subtle inner glow */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse 60% 40% at 50% 40%, rgba(124,92,255,0.07) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Icon */}
-        <svg
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          style={{ opacity: 0.25 }}
-        >
-          <rect
-            x="3"
-            y="5"
-            width="18"
-            height="14"
-            rx="2"
-            stroke="url(#mirror-icon-grad)"
-            strokeWidth="1.5"
-          />
-          <circle cx="12" cy="12" r="3" stroke="url(#mirror-icon-grad)" strokeWidth="1.5" />
-          <defs>
-            <linearGradient id="mirror-icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#7c5cff" />
-              <stop offset="100%" stopColor="#00e1ff" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <p
-          style={{
-            fontSize: 'var(--text-pl-caption, 0.875rem)',
-            color: 'var(--color-pl-fg-tertiary, #6b6b73)',
-            textAlign: 'center',
-            lineHeight: 1.6,
-            zIndex: 1,
-          }}
-        >
-          Your screenshot goes here
-          <br />
-          <span style={{ opacity: 0.55 }}>stage captures landing soon</span>
-        </p>
-      </div>
-    </div>
   );
 }
 
@@ -210,37 +126,6 @@ function HeroStyles() {
           animation: none;
           background-position: 0% center;
         }
-      }
-
-      /* Mirror card — breathing dashed border */
-      .hero-mirror-card {
-        outline: 1.5px dashed rgba(124,92,255,0.28);
-        outline-offset: 0px;
-        animation: pl-mirror-breathe 4s ease-in-out infinite;
-      }
-
-      @keyframes pl-mirror-breathe {
-        0%, 100% {
-          outline-color: rgba(124,92,255,0.18);
-          box-shadow: var(--pl-shadow-card,
-            0 1px 0 rgba(255,255,255,0.04) inset,
-            0 24px 48px -16px rgba(0,0,0,0.6));
-        }
-        50% {
-          outline-color: rgba(0,225,255,0.35);
-          box-shadow: var(--pl-shadow-card),
-            0 0 32px -10px rgba(124,92,255,0.2);
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .hero-mirror-card { animation: none; }
-      }
-
-      /* CSS reflection — Chrome + Safari (M1 targets) */
-      .hero-mirror-reflect {
-        -webkit-box-reflect: below 0px
-          linear-gradient(transparent 55%, rgba(7,7,10,0.30) 100%);
       }
 
       /* CTA focus-visible rings */
@@ -280,44 +165,6 @@ export default function Hero() {
   const t = useTranslations('hero');
   const prefersReduced = useReducedMotion();
   const reduced = prefersReduced ?? false;
-  const orbRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number | null>(null);
-
-  // conic-gradient orb: cursor-follow with rAF lerp 0.08, ±15°, 6°/s auto-rotate
-  useEffect(() => {
-    if (reduced) return;
-
-    let baseAngle = 0;
-    let mouseOffset = 0;
-    let targetMouseOffset = 0;
-    let lastTime = 0;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const ratio =
-        (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
-      targetMouseOffset = ratio * 15; // ±15°
-    };
-
-    const tick = (ts: number) => {
-      const delta = lastTime ? (ts - lastTime) / 1000 : 0;
-      lastTime = ts;
-      baseAngle += 6 * delta; // 6°/s slow auto-rotation
-      mouseOffset += (targetMouseOffset - mouseOffset) * 0.08; // damped lerp
-      orbRef.current?.style.setProperty(
-        '--pl-hero-angle',
-        `${baseAngle + mouseOffset}deg`
-      );
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [reduced]);
 
   const iv = makeItem(reduced);
   const titleLines = [
@@ -344,42 +191,6 @@ export default function Hero() {
           justifyContent: 'center',
         }}
       >
-        {/* Radial brand spot */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'var(--pl-grad-radial-spot)',
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
-        />
-
-        {/* Conic-gradient cursor orb — top-right quadrant */}
-        <div
-          ref={orbRef}
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '-120px',
-            right: '5%',
-            width: '520px',
-            height: '520px',
-            pointerEvents: 'none',
-            zIndex: 0,
-            background: `conic-gradient(
-              from var(--pl-hero-angle, 20deg) at 50% 50%,
-              rgba(124,92,255,0.28) 0%,
-              rgba(0,225,255,0.10) 22%,
-              transparent 45%,
-              rgba(124,92,255,0.06) 70%,
-              rgba(124,92,255,0.28) 360deg
-            )`,
-            filter: 'blur(80px)',
-            borderRadius: '50%',
-          }}
-        />
 
         {/* ── Content stack ─────────────────────────────────────────────── */}
         <motion.div
@@ -406,7 +217,7 @@ export default function Hero() {
             role="status"
           >
             <span aria-hidden="true">◈</span>
-            {t('badge')}&nbsp;·&nbsp;macOS/Windows 桌面版 v1.1 等你
+            {t('badge')}
           </motion.div>
 
           {/* Logo */}
@@ -480,16 +291,9 @@ export default function Hero() {
             }}
           >
             <span aria-hidden="true">◇</span>{' '}
-            Used by 600+ designers&nbsp;·&nbsp;Open source&nbsp;·&nbsp;MIT licensed
+            {t('socialProof')}
           </motion.p>
 
-          {/* Mirror placeholder */}
-          <motion.div
-            variants={iv}
-            style={{ marginTop: '72px', width: '100%' }}
-          >
-            <MirrorPlaceholder />
-          </motion.div>
         </motion.div>
       </section>
     </>

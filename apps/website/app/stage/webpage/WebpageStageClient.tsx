@@ -13,7 +13,7 @@ type Theme = {
   brand: string;
 };
 
-const THEMES: Record<'light' | 'crypto', Theme> = {
+const THEMES: Record<'light' | 'crypto' | 'promptlens', Theme> = {
   light: {
     bg: '#fafafa',
     surface: '#ffffff',
@@ -34,19 +34,43 @@ const THEMES: Record<'light' | 'crypto', Theme> = {
     border: 'rgba(255,255,255,0.08)',
     brand: 'Chainforge',
   },
+  promptlens: {
+    bg: '#07070a',
+    surface: '#0d0d12',
+    fg: '#f5f5f7',
+    muted: '#a1a1a8',
+    accent: '#7c5cff',
+    accentFg: '#ffffff',
+    border: 'rgba(255,255,255,0.08)',
+    brand: 'PromptLens Studio',
+  },
 };
 
 export default function WebpageStageClient() {
   const params = useSearchParams();
-  const themeKey = params.get('theme') === 'crypto' ? 'crypto' : 'light';
+  const themeKey = ['crypto', 'promptlens'].includes(params.get('theme') ?? '')
+    ? (params.get('theme') as 'crypto' | 'promptlens')
+    : 'light';
   const t = THEMES[themeKey];
   const isLight = themeKey === 'light';
+  const isPromptlens = themeKey === 'promptlens';
 
-  const heroCopy = isLight
+  const heroCopy = isPromptlens
+    ? { eyebrow: 'PROMPTLENS · v1.0', title: 'Turn any screenshot into a perfect prompt.', subtitle: 'Capture any region. Get MidJourney / SDXL / Flux / DALL·E prompts instantly.', cta: 'Install Extension', ctaSub: 'Watch demo →' }
+    : isLight
     ? { eyebrow: 'NEW · v2.4', title: 'Ship faster than your competitors.', subtitle: 'The developer platform your team already wanted. Deploy in seconds, scale to billions.', cta: 'Start free trial', ctaSub: 'Watch a 2-min demo →' }
     : { eyebrow: 'MAINNET · LIVE', title: 'On-chain intelligence, decoded.', subtitle: 'Real-time analytics, MEV protection, and portfolio tracking for DeFi power users. No wallet connect required.', cta: 'Explore the dashboard', ctaSub: 'Read the whitepaper →' };
 
-  const features = isLight
+  const features = isPromptlens
+    ? [
+        { icon: '✂', title: 'Capture Anywhere', desc: 'Press ⌘⇧Y on any page. Drag to select.' },
+        { icon: '🧠', title: 'Multi-Provider', desc: 'OpenAI, Anthropic, Gemini, Ollama. Your choice.' },
+        { icon: '🔒', title: 'Privacy-first', desc: 'Images and keys never touch a server.' },
+        { icon: '📋', title: '4 Prompt Formats', desc: 'MidJourney, SD, Flux, DALL·E — tabbed copy-paste.' },
+        { icon: '💾', title: 'Local History', desc: 'Searchable, exportable, yours.' },
+        { icon: '🎨', title: '3 Analysis Modes', desc: 'Style, Product Visual, Web Design.' },
+      ]
+    : isLight
     ? [
         { icon: '⚡', title: 'Edge-first runtime', desc: 'Your code runs in 300+ cities. Average p95 latency: 24ms.' },
         { icon: '🔒', title: 'SOC 2 Type II', desc: 'Enterprise-grade security, audited yearly. GDPR & CCPA compliant.' },
@@ -69,6 +93,12 @@ export default function WebpageStageClient() {
         { tier: 'Hobby', price: 'Free', period: 'forever', features: ['100k edge requests/mo', 'Community Discord', 'Public projects only'], highlight: false },
         { tier: 'Pro', price: '$20', period: 'per seat / mo', features: ['10M edge requests/mo', 'Private projects', 'Slack support', 'Custom domains'], highlight: true },
         { tier: 'Team', price: '$99', period: 'per seat / mo', features: ['Unlimited requests', 'SSO/SAML', 'Audit logs', 'Dedicated CSM'], highlight: false },
+      ]
+    : isPromptlens
+    ? [
+        { tier: 'Free', price: 'Free', period: 'forever', features: ['100 captures/mo', 'All 3 analysis modes', 'Local history'], highlight: false },
+        { tier: 'Pro', price: '$9', period: 'per month', features: ['Unlimited captures', 'All providers', 'Priority support', 'Bulk export'], highlight: true },
+        { tier: 'Team', price: '$29', period: 'per month', features: ['Everything in Pro', 'Shared workspace', 'Admin controls', 'Custom prompts'], highlight: false },
       ]
     : [
         { tier: 'Watch', price: 'Free', period: '1 wallet', features: ['Real-time prices', 'Basic alerts', 'Portfolio ≤ $10k tracked'], highlight: false },
@@ -127,7 +157,7 @@ export default function WebpageStageClient() {
             letterSpacing: 2,
             fontWeight: 600,
             color: t.accent,
-            background: isLight ? '#fff3eb' : 'rgba(0,229,143,0.08)',
+            background: isLight ? '#fff3eb' : isPromptlens ? 'rgba(124,92,255,0.12)' : 'rgba(0,229,143,0.08)',
             padding: '5px 12px',
             borderRadius: 999,
             marginBottom: 24,
@@ -135,7 +165,23 @@ export default function WebpageStageClient() {
         >
           {heroCopy.eyebrow}
         </span>
-        <h1 style={{ fontSize: 64, fontWeight: 700, letterSpacing: -2, lineHeight: 1.05, marginBottom: 20 }}>
+        <h1
+          style={{
+            fontSize: 64,
+            fontWeight: 700,
+            letterSpacing: -2,
+            lineHeight: 1.05,
+            marginBottom: 20,
+            ...(isPromptlens
+              ? {
+                  background: 'linear-gradient(135deg, #7c5cff 0%, #00e1ff 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }
+              : {}),
+          }}
+        >
           {heroCopy.title}
         </h1>
         <p style={{ fontSize: 19, color: t.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.5 }}>
@@ -168,7 +214,7 @@ export default function WebpageStageClient() {
             borderRadius: 12,
             overflow: 'hidden',
             border: `1px solid ${t.border}`,
-            boxShadow: isLight ? '0 40px 80px -20px rgba(0,0,0,0.18)' : '0 40px 80px -20px rgba(0,229,143,0.15)',
+            boxShadow: isLight ? '0 40px 80px -20px rgba(0,0,0,0.18)' : isPromptlens ? '0 40px 80px -20px rgba(124,92,255,0.25)' : '0 40px 80px -20px rgba(0,229,143,0.15)',
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}

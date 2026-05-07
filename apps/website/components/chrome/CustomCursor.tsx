@@ -11,11 +11,13 @@ export default function CustomCursor() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [coarsePointer, setCoarsePointer] = useState(false);
 
-  const springConfig = { damping: 20, stiffness: 300, mass: 0.5 };
+  // Tight spring — keeps slight smoothing without lag (Apple Pencil-ish feel)
+  const springConfig = { damping: 30, stiffness: 900, mass: 0.18 };
   const x = useSpring(0, springConfig);
   const y = useSpring(0, springConfig);
 
   const rafRef = useRef<number | null>(null);
+  const firstMoveRef = useRef(true);
 
   useEffect(() => {
     const mqlCoarse = window.matchMedia('(pointer: coarse)');
@@ -41,8 +43,17 @@ export default function CustomCursor() {
     const onMove = (e: MouseEvent) => {
       if (rafRef.current !== null) return;
       rafRef.current = requestAnimationFrame(() => {
-        x.set(e.clientX);
-        y.set(e.clientY);
+        // First move: jump to position without spring animation so the cursor
+        // doesn't visibly swoop in from (0,0).
+        if (firstMoveRef.current) {
+          x.jump(e.clientX);
+          y.jump(e.clientY);
+          firstMoveRef.current = false;
+          setVisible(true);
+        } else {
+          x.set(e.clientX);
+          y.set(e.clientY);
+        }
         rafRef.current = null;
       });
     };

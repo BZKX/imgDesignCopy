@@ -1,0 +1,56 @@
+# =============================================================================
+# PromptLens — production stack on a single VPS
+#
+# Layout:
+#   internet → Cloudflare proxy → caddy (host :443) → website container :3000
+#
+# Files this stack expects (copy to the same dir as this compose file on the VPS):
+#   .env             — runtime env (RESEND_*, NEXT_PUBLIC_*, etc.)
+#   Caddyfile        — reverse proxy config
+#   cert/cert.pem    — Cloudflare Origin Certificate (cert chain)
+#   cert/key.pem     — Cloudflare Origin Certificate (private key)
+#
+# Bring up:    docker compose pull && docker compose up -d
+# Tail logs:   docker compose logs -f
+# Update:      docker compose pull && docker compose up -d --force-recreate
+# =============================================================================
+
+services:
+  website:
+    image: ${WEBSITE_IMAGE:-promptlens-website:latest}
+    restart: unless-stopped
+    env_file: .env
+    expose:
+      - "3000"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/waitlist"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - website
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./cert:/etc/cert:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:
+    driver: bridge

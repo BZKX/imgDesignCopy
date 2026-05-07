@@ -1,0 +1,36 @@
+# Local artifacts that shouldn't enter the build context
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/build
+
+# Local env files — provided via docker-compose env_file at runtime, not bake-time
+**/.env
+**/.env.*
+!**/.env.example
+
+# Editor / OS noise
+.DS_Store
+.idea
+.vscode
+*.log
+
+# Test outputs and coverage
+**/coverage
+**/__snapshots__
+**/playwright-report
+**/test-results
+
+# Other apps in the monorepo (only website is being built)
+apps/chrome
+apps/desktop
+
+# Git internals
+.git
+.github
+
+# OMC / agent state — not relevant to the build
+.omc
+.claude
+DESIGN_LANGUAGE.md

@@ -2,7 +2,7 @@
   "name": "@promptlens/chrome",
   "version": "0.2.0",
   "private": true,
-  "description": "PromptLens Chrome extension — turns on-page image selections into Midjourney / SD / DALL·E prompts via an OpenAI-compatible Vision API.",
+  "description": "Screenshot to AI prompt, product visual, or webpage design tokens — via your own OpenAI / Anthropic / Gemini key. Local-first.",
   "type": "module",
   "scripts": {
     "dev": "vite",

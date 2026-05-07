@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import LocaleProvider from '@/components/scroll/LocaleProvider';
 import { Analytics } from '@vercel/analytics/next';
@@ -11,7 +12,7 @@ const inter = Inter({
   variable: '--font-pl-sans-inter',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://promptlens.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://promptlens.cc';
 
 export const metadata: Metadata = {
   title: 'PromptLens — Screenshot to AI Prompt',
@@ -41,11 +42,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Cloudflare Web Analytics — only injected when token is present.
+  // Set NEXT_PUBLIC_CF_ANALYTICS_TOKEN in .env / hosting dashboard after creating
+  // a site in Cloudflare → Analytics & Logs → Web Analytics.
+  const cfToken = process.env.NEXT_PUBLIC_CF_ANALYTICS_TOKEN;
+
   return (
     <html lang="zh-CN" className="dark" suppressHydrationWarning>
       <body className={inter.variable}>
         <LocaleProvider>{children}</LocaleProvider>
         <Analytics />
+        {cfToken && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={JSON.stringify({ token: cfToken })}
+          />
+        )}
       </body>
     </html>
   );

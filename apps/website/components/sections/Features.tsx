@@ -1,52 +1,23 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
-const FEATURES = [
-  {
-    id: 'multi-provider',
-    icon: '⬡',
-    title: 'Multi-Provider',
-    description:
-      'OpenAI, Anthropic, Gemini, Ollama — switch providers without switching workflows.',
-    tags: ['OpenAI', 'Anthropic', 'Gemini', 'Ollama'],
-  },
-  {
-    id: 'themes',
-    icon: '◑',
-    title: 'Themes',
-    description: 'Light and dark mode, both meticulously tuned for extended design sessions.',
-    tags: ['Light', 'Dark'],
-  },
-  {
-    id: 'shortcuts',
-    icon: '⌘',
-    title: 'Shortcuts',
-    description: 'Press ⌘⇧Y anywhere to capture any region. Never leave your creative flow.',
-    tags: ['⌘⇧Y', 'Global hotkey'],
-  },
-  {
-    id: 'history',
-    icon: '◫',
-    title: 'History',
-    description: 'Every prompt saved locally in SQLite. Full-text search, revisit, remix.',
-    tags: ['SQLite', 'Local-first'],
-  },
-  {
-    id: 'export',
-    icon: '↗',
-    title: 'Export',
-    description: 'One-click copy, JSON export, or Markdown — wherever your workflow lives.',
-    tags: ['JSON', 'Markdown', 'Clipboard'],
-  },
-  {
-    id: 'privacy',
-    icon: '◎',
-    title: 'Privacy',
-    description:
-      'No logs, no proxy. Your images and API keys never touch our servers.',
-    tags: ['No logs', 'No proxy', 'Local-first'],
-  },
+interface Feature {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  tags: readonly string[];
+}
+
+const FEATURE_DEFS = [
+  { id: 'multi-provider', icon: '⬡', titleKey: 'multiProvider.title', descKey: 'multiProvider.description', tags: ['OpenAI', 'Anthropic', 'Gemini', 'Ollama'] as const },
+  { id: 'analysis-modes', icon: '◉', titleKey: 'analysisModes.title', descKey: 'analysisModes.description', tags: ['Style Prompt', 'Product Visual', 'Web Design'] as const },
+  { id: 'dtcg-tokens', icon: '◈', titleKey: 'dtcgTokens.title', descKey: 'dtcgTokens.description', tags: ['DTCG', 'Standards-compliant'] as const },
+  { id: 'shortcuts', icon: '⌘', titleKey: 'shortcuts.title', descKey: 'shortcuts.description', tags: ['⌘⇧Y', 'Global hotkey'] as const },
+  { id: 'privacy', icon: '◎', titleKey: 'privacy.title', descKey: 'privacy.description', tags: ['No logs', 'No proxy', 'Local-first'] as const },
+  { id: 'export', icon: '↗', titleKey: 'export.title', descKey: 'export.description', tags: ['JSON', 'Markdown', 'Clipboard'] as const },
 ];
 
 interface TiltState {
@@ -60,7 +31,7 @@ function FeatureCard({
   focused,
   onFocus,
 }: {
-  feature: (typeof FEATURES)[0];
+  feature: Feature;
   index: number;
   focused: boolean;
   onFocus: () => void;
@@ -264,10 +235,21 @@ function FeatureCard({
 }
 
 export default function Features() {
+  const t = useTranslations('sections.features');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const features: Feature[] = FEATURE_DEFS.map((def) => ({
+    id: def.id,
+    icon: def.icon,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    title: t(def.titleKey as any),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    description: t(def.descKey as any),
+    tags: def.tags,
+  }));
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -294,7 +276,7 @@ export default function Features() {
     (e: React.KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setFocusedIndex((i) => Math.min(i + 1, FEATURES.length - 1));
+        setFocusedIndex((i) => Math.min(i + 1, features.length - 1));
         scroll('right');
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -302,7 +284,7 @@ export default function Features() {
         scroll('left');
       }
     },
-    [scroll],
+    [scroll, features.length],
   );
 
   return (
@@ -310,18 +292,19 @@ export default function Features() {
       id="features"
       aria-label="Features"
       style={{
-        paddingBlock: '128px',
+        paddingBlock: 'clamp(80px, 12vw, 128px)',
         position: 'relative',
         zIndex: 10,
       }}
     >
       {/* Header */}
       <div
+        className="pl-features-header"
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0 96px',
-          marginBottom: '64px',
+          padding: '0 clamp(20px, 7vw, 96px)',
+          marginBottom: 'clamp(40px, 8vw, 64px)',
         }}
       >
         <p
@@ -334,7 +317,7 @@ export default function Features() {
             margin: '0 0 12px',
           }}
         >
-          FEATURES
+          {t('eyebrow')}
         </p>
         <h2
           style={{
@@ -345,7 +328,7 @@ export default function Features() {
             margin: 0,
           }}
         >
-          Six things you&apos;ll quietly love.
+          {t('title')}
         </h2>
       </div>
 
@@ -393,15 +376,15 @@ export default function Features() {
             gap: '20px',
             overflowX: 'auto',
             scrollSnapType: 'x mandatory',
-            scrollPaddingLeft: '96px',
-            paddingLeft: '96px',
-            paddingRight: '96px',
+            scrollPaddingLeft: 'max(20px, calc((100vw - 1240px) / 2))',
+            paddingLeft: 'max(20px, calc((100vw - 1240px) / 2))',
+            paddingRight: 'max(20px, calc((100vw - 1240px) / 2))',
             paddingBottom: '24px',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
           }}
         >
-          {FEATURES.map((feature, index) => (
+          {features.map((feature, index) => (
             <FeatureCard
               key={feature.id}
               feature={feature}
@@ -418,7 +401,7 @@ export default function Features() {
         style={{
           maxWidth: '1280px',
           margin: '32px auto 0',
-          padding: '0 96px',
+          padding: '0 clamp(20px, 7vw, 96px)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
@@ -480,7 +463,7 @@ export default function Features() {
             marginLeft: '4px',
           }}
         >
-          {FEATURES.length} features
+          {features.length} {t('eyebrow').toLowerCase()}
         </span>
       </div>
 
@@ -490,6 +473,14 @@ export default function Features() {
           to { transform: rotate(360deg); }
         }
         [role="list"]::-webkit-scrollbar { display: none; }
+
+        /* Tighten cards on small viewports so they don't feel cramped */
+        @media (max-width: 480px) {
+          #features div[role="article"] > div {
+            width: 280px !important;
+            height: 360px !important;
+          }
+        }
       `}</style>
     </section>
   );

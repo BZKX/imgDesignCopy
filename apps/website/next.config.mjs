@@ -8,8 +8,10 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Self-contained server bundle for Docker deploy (next-server + minimal node_modules)
+  output: 'standalone',
   experimental: {
-    optimizePackageImports: ['framer-motion', 'three', '@react-three/drei'],
+    optimizePackageImports: ['framer-motion'],
   },
   // Point to monorepo root so Next.js file-tracing works correctly in pnpm workspaces
   outputFileTracingRoot: path.join(__dirname, '../../'),
