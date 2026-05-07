@@ -69,7 +69,7 @@ ssh ubuntu@VPS_IP "cd ~/promptlens && mv .env.example .env && nano .env"
 ```bash
 # Create a GitHub Personal Access Token: github.com/settings/tokens
 #   - scope: write:packages, read:packages
-echo $GHCR_PAT | docker login ghcr.io -u <your-github-username> --password-stdin
+echo $GHCR_PAT | docker login ghcr.io -u bzkx --password-stdin
 ```
 
 ### 2. Build (from monorepo root, NOT apps/website/)
@@ -79,8 +79,8 @@ docker buildx build \
   --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_SITE_URL=https://promptlens.cc \
   -f apps/website/Dockerfile \
-  -t ghcr.io/<your-github-username>/promptlens-website:latest \
-  -t ghcr.io/<your-github-username>/promptlens-website:0.2.0 \
+  -t ghcr.io/bzkx/promptlens-website:latest \
+  -t ghcr.io/bzkx/promptlens-website:0.2.0 \
   --push .
 ```
 
@@ -88,7 +88,7 @@ docker buildx build \
 
 ### 3. Make the GHCR package private (default is private, just verify)
 
-`github.com/<your-username>?tab=packages` → click `promptlens-website` → Package settings → Visibility = Private.
+`github.com/BZKX?tab=packages` → click `promptlens-website` → Package settings → Visibility = Private.
 
 ---
 
@@ -99,7 +99,7 @@ ssh ubuntu@VPS_IP
 cd ~/promptlens
 
 # First time only — auth GHCR on the server
-echo $GHCR_PAT | docker login ghcr.io -u <your-github-username> --password-stdin
+echo $GHCR_PAT | docker login ghcr.io -u bzkx --password-stdin
 
 docker compose pull
 docker compose up -d
@@ -125,7 +125,7 @@ After making changes locally + bumping `package.json` version:
 # 1. Build & push from monorepo root
 docker buildx build --platform linux/amd64 \
   -f apps/website/Dockerfile \
-  -t ghcr.io/<your-github-username>/promptlens-website:latest \
+  -t ghcr.io/bzkx/promptlens-website:latest \
   --push .
 
 # 2. SSH and roll

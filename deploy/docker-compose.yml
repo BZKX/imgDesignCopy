@@ -17,7 +17,7 @@
 
 services:
   website:
-    image: ${WEBSITE_IMAGE:-promptlens-website:latest}
+    image: ${WEBSITE_IMAGE:-ghcr.io/bzkx/promptlens-website:latest}
     restart: unless-stopped
     env_file: .env
     expose:
