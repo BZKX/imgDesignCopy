@@ -1,18 +1,19 @@
 # =============================================================================
-# PromptLens — production stack on a single VPS
+# PromptLens — single-file production stack
 #
 # Layout:
 #   internet → Cloudflare proxy → caddy (host :443) → website container :3000
 #
-# Files this stack expects (copy to the same dir as this compose file on the VPS):
+# Files this stack expects (next to this compose file on the VPS):
 #   .env             — runtime env (RESEND_*, NEXT_PUBLIC_*, etc.)
-#   Caddyfile        — reverse proxy config
 #   cert/cert.pem    — Cloudflare Origin Certificate (cert chain)
 #   cert/key.pem     — Cloudflare Origin Certificate (private key)
 #
 # Bring up:    docker compose pull && docker compose up -d
 # Tail logs:   docker compose logs -f
 # Update:      docker compose pull && docker compose up -d --force-recreate
+#
+# Requires Docker Compose v2.23+ (uses `configs.content` for inline Caddyfile).
 # =============================================================================
 
 services:
@@ -39,13 +40,53 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./cert:/etc/cert:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - internal
+
+configs:
+  caddyfile:
+    content: |
+      {
+        admin off
+        auto_https disable_redirects
+      }
+
+      # Plain HTTP → HTTPS redirect
+      http://promptlens.cc, http://www.promptlens.cc {
+        redir https://promptlens.cc{uri} 308
+      }
+
+      # Apex domain
+      promptlens.cc {
+        tls /etc/cert/cert.pem /etc/cert/key.pem
+        encode zstd gzip
+
+        @nextStatic path /_next/static/*
+        header @nextStatic Cache-Control "public, max-age=31536000, immutable"
+
+        @downloads path /downloads/*
+        header @downloads Cache-Control "public, max-age=86400"
+
+        reverse_proxy website:3000 {
+          header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}
+          header_up X-Real-IP {http.request.header.CF-Connecting-IP}
+          header_up X-Forwarded-Proto https
+          header_up X-Forwarded-Host {host}
+        }
+      }
+
+      # www → apex
+      www.promptlens.cc {
+        tls /etc/cert/cert.pem /etc/cert/key.pem
+        redir https://promptlens.cc{uri} 308
+      }
 
 volumes:
   caddy_data:

@@ -50,13 +50,12 @@ chmod 600 ~/promptlens/cert/key.pem
 
 Copy these three files from `deploy/` in the repo to `~/promptlens/` on the server:
 - `docker-compose.yml`
-- `Caddyfile`
 - `.env`  (start from `.env.example`, fill in real secrets)
 
 Quickest way: `scp` from your laptop:
 
 ```bash
-scp deploy/docker-compose.yml deploy/Caddyfile deploy/.env.example ubuntu@VPS_IP:~/promptlens/
+scp deploy/docker-compose.yml deploy/.env.example ubuntu@VPS_IP:~/promptlens/
 ssh ubuntu@VPS_IP "cd ~/promptlens && mv .env.example .env && nano .env"
 ```
 
